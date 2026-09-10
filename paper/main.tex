@@ -16,6 +16,8 @@
 \usepackage{booktabs}
 \usepackage{array}
 \usepackage{tabularx}
+\usepackage{float}
+\usepackage[section]{placeins}
 \usepackage{microtype}
 \usepackage{hyperref}
 \usepackage{xcolor}
@@ -230,7 +232,7 @@ scored. The analysis program refuses to run in confirmatory mode on an
 unfrozen or subsequently edited specification and refuses pilot-tagged
 input files. The frozen decisions are listed in Table~\ref{tab:spec}.
 
-\begin{table}[t]
+\begin{table}[htbp]
 \centering\small
 \caption{Frozen decisions. Bounds are cluster-bootstrap percentiles.}
 \label{tab:spec}
@@ -307,7 +309,7 @@ NFC normalisation; no pair id was duplicated.
 
 \subsection{Pooled estimands and confirmatory decisions}
 
-\begin{table}[t]
+\begin{table}[htbp]
 \centering\small
 \caption{Held-out pooled estimands (278 articles, 7{,}046 pairs) with 95\%
 cluster-bootstrap percentile intervals, and the pre-registered decisions.
@@ -347,7 +349,7 @@ held-out $\Reta$ is 0.0048 above the pilot value, about 1.2 held-out
 standard errors, an ordinary sampling shift; with the threshold placed 1.25
 pilot standard errors above the pilot estimate, that shift was enough.
 
-\begin{table}[t]
+\begin{table}[htbp]
 \centering\small
 \caption{Pilot versus held-out point estimates after identical exclusions.}
 \label{tab:pilot}
@@ -375,7 +377,7 @@ under the prepend-BOS policy the first content token is scored from a
 document boundary and is expensive in both languages, and this fixed cost is
 a larger fraction of a short message.
 
-\begin{table}[t]
+\begin{table}[htbp]
 \centering\small
 \caption{Held-out pooled estimands within terciles of English character
 count (exploratory). Articles may span terciles; bootstrap within tercile.}
@@ -413,7 +415,7 @@ the held-out set holding the Qwen3 bits fixed and substituting the two
 previous OpenAI encodings for the billing tokenizer (Table~\ref{tab:gen}).
 This was done after the confirmatory analysis and is not part of it.
 
-\begin{table}[t]
+\begin{table}[htbp]
 \centering\small
 \caption{Held-out $\RT$ and $\Reta$ under three OpenAI encodings with the
 same Qwen3-1.7B-Base bits (post hoc, exploratory).}
@@ -530,6 +532,7 @@ before every run.
 \bibliographystyle{plainnat}
 \bibliography{refs}
 
+\clearpage
 \appendix
 
 \section{Pilot precision simulation}
@@ -541,7 +544,7 @@ confirmatory rules use. Table~\ref{tab:precision} reports the quantiles of
 those bounds across simulations. The 95th percentile of the $\Reta$ upper
 bound, 0.953, coincides with the value later observed.
 
-\begin{table}[h]
+\begin{table}[H]
 \centering\small
 \caption{Quantiles across 400 simulated held-out samples (278 articles) of
 the decision bounds, using pilot per-article sums as the population.}
