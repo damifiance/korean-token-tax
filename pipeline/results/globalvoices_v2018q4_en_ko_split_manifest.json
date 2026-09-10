@@ -1,0 +1,209 @@
+{
+  "created_at_utc": "2026-09-10T05:11:07.163918+00:00",
+  "limitations": [
+    "The archive supplies no per-document translation-direction field.",
+    "The release supplies no native pilot/confirmatory split; this preparation adds a deterministic article-level split.",
+    "Pilot observations must not be reused in the confirmatory analysis.",
+    "Because the material predates modern models, training-data contamination cannot generally be ruled out.",
+    "The archive license file points to original-source licenses without an SPDX identifier; preserve attribution and inspect historical source pages before republication."
+  ],
+  "output": {
+    "columns": [
+      "pair_id",
+      "cluster_id",
+      "genre",
+      "translation_direction",
+      "ko_text",
+      "en_text",
+      "source_url",
+      "split",
+      "corpus_release",
+      "document_index",
+      "alignment_index",
+      "en_document_path",
+      "ko_document_path",
+      "xtargets"
+    ],
+    "confirmatory": {
+      "bytes": 4166168,
+      "clusters": 278,
+      "path": "/Users/damifiance/study/2-2/대글2/pipeline/data/processed/globalvoices_v2018q4_en_ko_confirmatory.csv",
+      "rows": 7285,
+      "sha256": "09a3eb278cf4ea3ff5df9a5105376cf8d241f244a86f231d6545205809cec17d"
+    },
+    "encoding": "utf-8",
+    "format": "csv",
+    "maximum_rows_per_cluster": 125,
+    "minimum_rows_per_cluster": 1,
+    "pilot": {
+      "bytes": 957398,
+      "clusters": 69,
+      "path": "/Users/damifiance/study/2-2/대글2/pipeline/data/processed/globalvoices_v2018q4_en_ko_pilot.csv",
+      "rows": 1732,
+      "sha256": "818bb775b23e44164eb24821ff50641c6c273371c9a423d6ce96e0bdf9fd46fc"
+    },
+    "total_clusters": 347,
+    "total_rows": 9017
+  },
+  "processing": {
+    "alignment_mapping": "blank-separated Moses chunks matched in order to XML linkGrp/link elements",
+    "genre": "news",
+    "split": {
+      "component_size_distribution": {
+        "1": 317,
+        "2": 5,
+        "3": 1,
+        "4": 1,
+        "13": 1
+      },
+      "components": 325,
+      "confirmatory_components": 256,
+      "cross_split_exact_duplicate_groups": 0,
+      "indivisible_unit": "connected component of article clusters linked by identical (en_text, ko_text) pairs",
+      "multi_cluster_components": 8,
+      "pilot_cluster_ids": [
+        "globalvoices-v2018q4-doc-015f90b224c9ddd9",
+        "globalvoices-v2018q4-doc-0197370d94fb4062",
+        "globalvoices-v2018q4-doc-0327ccc32db5bfeb",
+        "globalvoices-v2018q4-doc-032ef90ec4d4910d",
+        "globalvoices-v2018q4-doc-03d4a7a84210045a",
+        "globalvoices-v2018q4-doc-0526a07467c7e5b6",
+        "globalvoices-v2018q4-doc-095d92d6934b2ca5",
+        "globalvoices-v2018q4-doc-09afdd8949a6b820",
+        "globalvoices-v2018q4-doc-0a3df9253dce97ac",
+        "globalvoices-v2018q4-doc-0c33cad69b2d1f18",
+        "globalvoices-v2018q4-doc-0cf51c0e4ec1305c",
+        "globalvoices-v2018q4-doc-0d6da9c9ad8fa042",
+        "globalvoices-v2018q4-doc-1975dbebc41f871a",
+        "globalvoices-v2018q4-doc-1b45b539fe75d81a",
+        "globalvoices-v2018q4-doc-2113c40a3b064752",
+        "globalvoices-v2018q4-doc-21499abf81da6519",
+        "globalvoices-v2018q4-doc-24b93095069bbb09",
+        "globalvoices-v2018q4-doc-2eda928137ee6ca7",
+        "globalvoices-v2018q4-doc-3119d6a9c521d715",
+        "globalvoices-v2018q4-doc-3132347b719ac4ca",
+        "globalvoices-v2018q4-doc-3379b905d976d633",
+        "globalvoices-v2018q4-doc-482f25b36831ebaa",
+        "globalvoices-v2018q4-doc-4fe098c1d413f906",
+        "globalvoices-v2018q4-doc-53038e697e79f17d",
+        "globalvoices-v2018q4-doc-53578211fdfa562c",
+        "globalvoices-v2018q4-doc-57fc39a2b484f989",
+        "globalvoices-v2018q4-doc-5c0274121be52196",
+        "globalvoices-v2018q4-doc-5d26d58c5fd03f8f",
+        "globalvoices-v2018q4-doc-5de2aa4b26dcb9cf",
+        "globalvoices-v2018q4-doc-664d0b51e06ac9ae",
+        "globalvoices-v2018q4-doc-6c611440487efdcf",
+        "globalvoices-v2018q4-doc-6dfdf059eba22a59",
+        "globalvoices-v2018q4-doc-6f08d1a9d321d51b",
+        "globalvoices-v2018q4-doc-736e83537835ebd4",
+        "globalvoices-v2018q4-doc-7998d5d4c3b586a8",
+        "globalvoices-v2018q4-doc-7a18f41ca3ca9e77",
+        "globalvoices-v2018q4-doc-7aad8aa1c8a3a92e",
+        "globalvoices-v2018q4-doc-8084fb5ce5c55f08",
+        "globalvoices-v2018q4-doc-816203a49cdea3f3",
+        "globalvoices-v2018q4-doc-844937f7b78b4ef3",
+        "globalvoices-v2018q4-doc-8d89db822d12a2b6",
+        "globalvoices-v2018q4-doc-954747f39de9956a",
+        "globalvoices-v2018q4-doc-96f1dc32fcebad50",
+        "globalvoices-v2018q4-doc-9aea8c79fafbc165",
+        "globalvoices-v2018q4-doc-9e16f14a4b465b0f",
+        "globalvoices-v2018q4-doc-9ecd70a718bc6f53",
+        "globalvoices-v2018q4-doc-a895016aa8c993bb",
+        "globalvoices-v2018q4-doc-aa0a7cf379245fd3",
+        "globalvoices-v2018q4-doc-ac781d1dea1f2aa5",
+        "globalvoices-v2018q4-doc-b19e62c6738d707d",
+        "globalvoices-v2018q4-doc-b23dfa7a261dbb17",
+        "globalvoices-v2018q4-doc-b5fcf6231b7d29e1",
+        "globalvoices-v2018q4-doc-b898aa48643aed61",
+        "globalvoices-v2018q4-doc-b91a20d6bedb9f0c",
+        "globalvoices-v2018q4-doc-bdb38ed441165ceb",
+        "globalvoices-v2018q4-doc-c2772464129be191",
+        "globalvoices-v2018q4-doc-c4bfb68982a2a2cb",
+        "globalvoices-v2018q4-doc-c9e1e0c03061ec8d",
+        "globalvoices-v2018q4-doc-cb78c90b00837183",
+        "globalvoices-v2018q4-doc-cc3324c2baad3678",
+        "globalvoices-v2018q4-doc-cea788de2263cf30",
+        "globalvoices-v2018q4-doc-d270dbcd784a498f",
+        "globalvoices-v2018q4-doc-d3e015c0aea10e49",
+        "globalvoices-v2018q4-doc-d776f124238bf8cd",
+        "globalvoices-v2018q4-doc-dbaac5dded087c04",
+        "globalvoices-v2018q4-doc-ee785ff2de69da33",
+        "globalvoices-v2018q4-doc-f3e2bd226979192c",
+        "globalvoices-v2018q4-doc-f720b9e234ae9517",
+        "globalvoices-v2018q4-doc-ff3f1bef7737a1f9"
+      ],
+      "pilot_components": 69,
+      "pilot_fraction": 0.2,
+      "ranked_component_list_sha256": "dbea95f10b032bd141258e029cb5e123fa7d6f6cf1c5434a01ee5ce5ee61f6a9",
+      "rule": "union article clusters sharing an exact bilingual pair; rank components by SHA256(seed + NUL + newline-joined sorted cluster IDs); choose the ranked prefix with article count closest to floor(fraction * N), breaking an equal-distance cutoff toward the smaller pilot",
+      "seed": "20260910",
+      "target_pilot_clusters": 69,
+      "unit": "cluster_id (one OPUS XML linkGrp / article)"
+    },
+    "surrounding_whitespace": "removed",
+    "translation_direction": "unknown",
+    "unicode_normalization": "NFC"
+  },
+  "quality_audit": {
+    "cross_split_exact_duplicate_groups": 0,
+    "empty_english_rows": 0,
+    "empty_korean_rows": 0,
+    "english_rows_without_ascii_letters": 58,
+    "exact_duplicate_groups_spanning_clusters": 18,
+    "exact_duplicate_pair_groups": 63,
+    "exact_duplicate_rows_beyond_first": 105,
+    "filtering": "none; all nonempty upstream alignment units retained",
+    "korean_rows_without_hangul_syllables": 299,
+    "maximum_exact_pair_occurrences": 9,
+    "non_nfc_english_rows": 0,
+    "non_nfc_korean_rows": 0,
+    "note": "Flags are descriptive only. Rows without Hangul or ASCII letters and exact duplicates were not automatically treated as invalid."
+  },
+  "source": {
+    "archive_members": {
+      "GlobalVoices.en-ko.en": {
+        "bytes": 1055517,
+        "sha256": "e5d4ee7eecca217006d5dc538eb0a2707ee456b966d73af5b793bbdefe69dd00"
+      },
+      "GlobalVoices.en-ko.ko": {
+        "bytes": 1189551,
+        "sha256": "0da21587032b9512da4f1f8f3da666416b5c059335205f8ed924d0c6649adf6a"
+      },
+      "GlobalVoices.en-ko.xml": {
+        "bytes": 339430,
+        "sha256": "86b019248bbb60d365cc8b48608f1488c8ce6908e7cf35c24764ca0471d5154e"
+      },
+      "LICENSE": {
+        "bytes": 174,
+        "sha256": "a13b9f49a52d51e5782abb6fb35f58b4875df9f66c76485f85444ad2a9704ede"
+      },
+      "README": {
+        "bytes": 795,
+        "sha256": "9082a76d67b1a868d3c6f8586db910b4125aa8d88decca889ca8149de85b7c85"
+      }
+    },
+    "archive_path": "/Users/damifiance/study/2-2/대글2/pipeline/data/raw/OPUS-GlobalVoices-v2018q4-en-ko.txt.zip",
+    "archive_sha256": "b8d91a43ac305bd54f98edcf2598686cc7b1e6ab3bdae05fb0983a3644a68144",
+    "corpus": "GlobalVoices",
+    "download_url": "https://object.pouta.csc.fi/OPUS-GlobalVoices/v2018q4/moses/en-ko.txt.zip",
+    "expected_archive_bytes": 891364,
+    "format": "OPUS Moses",
+    "languages": [
+      "en",
+      "ko"
+    ],
+    "observed_counts": {
+      "english_blank_separators": 365,
+      "english_document_chunks": 365,
+      "english_physical_lines": 9382,
+      "korean_blank_separators": 365,
+      "korean_document_chunks": 365,
+      "korean_physical_lines": 9382,
+      "xml_empty_link_groups": 18,
+      "xml_link_groups": 365,
+      "xml_links": 9017,
+      "xml_nonempty_link_groups": 347
+    },
+    "release": "v2018q4"
+  }
+}

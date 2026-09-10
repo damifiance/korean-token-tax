@@ -1,0 +1,134 @@
+{
+  "timestamp_utc": "2026-09-10T05:34:54.380853+00:00",
+  "python": "3.13.1 (v3.13.1:06714517797, Dec  3 2024, 14:00:22) [Clang 15.0.0 (clang-1500.3.9.4)]",
+  "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+  "machine": "arm64",
+  "packages": {
+    "torch": "2.14.0",
+    "transformers": "5.17.0",
+    "tokenizers": "0.23.2",
+    "numpy": "2.5.3",
+    "pandas": "3.0.5",
+    "scipy": "1.18.1",
+    "pyyaml": "6.0.3",
+    "huggingface_hub": "1.30.0",
+    "safetensors": "0.8.0",
+    "tiktoken": "0.14.0"
+  },
+  "spec": {
+    "spec_version": 1,
+    "frozen": false,
+    "frozen_at": null,
+    "frozen_sha256": null,
+    "corpus": {
+      "path": "/Users/damifiance/study/2-2/대글2/pipeline/data/processed/globalvoices_v2018q4_en_ko_pilot.csv",
+      "format": "csv",
+      "columns": {
+        "korean_text": "ko_text",
+        "english_text": "en_text",
+        "pair_id": "pair_id",
+        "cluster_id": "cluster_id",
+        "genre": "genre",
+        "direction": "translation_direction"
+      },
+      "normalization": "NFC"
+    },
+    "estimator": {
+      "model_id": "Qwen/Qwen3-1.7B-Base",
+      "revision": "ea980cb0a6c2ae4b936e82123acc929f1cec04c1",
+      "local_path": "/Users/damifiance/study/2-2/대글2/pipeline/models/Qwen3-1.7B-Base-ea980cb",
+      "dtype": "bfloat16",
+      "context_length": 32768,
+      "context_overlap": 16384
+    },
+    "tokenizers": {
+      "baseline": {
+        "id": "tiktoken:o200k_base",
+        "revision": "0.14.0"
+      },
+      "korean_fit": {
+        "id": "EleutherAI/polyglot-ko-1.3b",
+        "revision": "557e162cf6e944fdbae05bab2e45d066a125eacb"
+      }
+    },
+    "token_accounting": "content_only",
+    "chat_template_config": null,
+    "scoring_policy": {
+      "bos": "prepend_bos",
+      "eos": "none"
+    },
+    "thresholds": {
+      "c_T": null,
+      "L_B": null,
+      "U_B": null,
+      "c_eta": null,
+      "c_C": null
+    },
+    "endpoints": {
+      "primary": null,
+      "confirmatory": [],
+      "exploratory": []
+    },
+    "bootstrap": {
+      "n_replicates": 10000,
+      "seed": 20260910,
+      "alpha_two_sided": 0.05,
+      "alpha_equivalence": 0.05
+    }
+  },
+  "dataset_sha256": "63e0252137dece0076337aec3d47930f6495b0f63a667a5313cb6c7572057968",
+  "tokenizer_file_hashes": {
+    "estimator": {
+      "MODEL_MANIFEST.json": "273ecd4bdb009703d0c8a38b276e3eabd010620a5303819cd4f54e8ced7946fe",
+      "config.json": "1bb33a92c3548fbc68b889b490e810440435253598835bd71dff0396060c12db",
+      "generation_config.json": "8c970692323e3ea0e9b8b0a4dca79388d31226e41f83c9fd6014804280ebf6e8",
+      "merges.txt": "8831e4f1a044471340f7c0a83d7bd71306a5b867e95fd870f74d0c5308a904d5",
+      "tokenizer.json": "c0382117ea329cdf097041132f6d735924b697924d6f6fc3945713e96ce87539",
+      "tokenizer_config.json": "3c04ed3ca964ea2f6b2b5faf0dc4d31aec1cb1e8b4bcf63f402d295046b422b5",
+      "vocab.json": "ca10d7e9fb3ed18575dd1e277a2579c16d108e32f27439684afa0e10b1440910",
+      "_source_id": "Qwen/Qwen3-1.7B-Base",
+      "_revision": "ea980cb0a6c2ae4b936e82123acc929f1cec04c1"
+    },
+    "baseline": {
+      "fb374d419588a4632f3f557e76b4b70aebbca790": "446a9538cb6c348e3516120d7c08b09f57c36495e2acfffe59a5bf8b0cfb1a2d",
+      "_source_id": "tiktoken:o200k_base",
+      "_revision": "0.14.0"
+    },
+    "korean_fit": {
+      "config.json": "930b03b76ab10b1eb2b368a4447c7f67e4ee223aa4018bcd391e021dbbfc566c",
+      "special_tokens_map.json": "3cd48132e2803e81d3a11115a1e2aa823749398a7ecd10253b9e7d7e0212439a",
+      "tokenizer.json": "60e8bd123994badd563a603bce1a319dd7f5dc4798a476c2d88c671766db2f24",
+      "tokenizer_config.json": "b3e1f7844fe29b73f6ae3d050a7e20f5f0e160b90457f381a9318da9ceb0819f",
+      "_source_id": "EleutherAI/polyglot-ko-1.3b",
+      "_revision": "557e162cf6e944fdbae05bab2e45d066a125eacb"
+    }
+  },
+  "run_tag": "pilot",
+  "n_pairs_scored": 1732,
+  "device": "mps",
+  "estimator_load_source": "/Users/damifiance/study/2-2/대글2/pipeline/models/Qwen3-1.7B-Base-ea980cb",
+  "estimator_local_path_used": true,
+  "validation_report": {
+    "n_rows": 1732,
+    "n_clusters": 69,
+    "genres": {
+      "news": 1732
+    },
+    "directions": {
+      "unknown": 1732
+    },
+    "flag_counts": {
+      "flag_ko_nfc_changed": 0,
+      "flag_ko_empty": 0,
+      "flag_ko_control_chars": 4,
+      "flag_en_nfc_changed": 0,
+      "flag_en_empty": 0,
+      "flag_en_control_chars": 9,
+      "flag_ko_no_hangul": 60,
+      "flag_en_has_hangul": 0,
+      "flag_duplicate_pair_id": 0,
+      "flag_missing_meta": 0
+    }
+  },
+  "spec_frozen": false
+}

@@ -1,0 +1,60 @@
+{
+  "pilot": {
+    "analysis_summary.json": {
+      "sha256": "38646811b322676af3dc613231a765f5718e45acf7f53922b12f18e2fa6dc130"
+    },
+    "bootstrap_replicates.csv": {
+      "sha256": "1d5bfc033a82c765af24543a3b99ba01f8c9bf7d4395d7d76c3d6cedf9a97205"
+    },
+    "per_pair_pilot_no_text.csv": {
+      "sha256": "b83e6576107e6137da320b57ccb73dfe27a00bb2417ace1161c9dfd571bd2c7e",
+      "rows": 1732,
+      "source_sha256": "7d6fcf05228574826a0ef67b468ab582db56d96c8f613c985ece5c96a0f226c1",
+      "dropped_columns": [
+        "english_text",
+        "korean_text"
+      ]
+    },
+    "precision_sim_bounds_m278.csv": {
+      "sha256": "9d3016bb370bd3af21b92b3a75f37f3ec424b6d1d9686fb37210b858d287a40c"
+    },
+    "precision_sim_bounds_m347.csv": {
+      "sha256": "06c93fd5d6cb6815dc44103e801078f418d27c26cf2029c7f8d8d7ca47be9fa5"
+    },
+    "precision_sim_bounds_m69.csv": {
+      "sha256": "2c36ba71efe477fe682d34614dcfd76883e15c47d38cc80a64d38f2a59e75c3c"
+    },
+    "precision_sim_summary.json": {
+      "sha256": "2fb42e5a0f4fe755f184f755fd921eae41aeb3ffe583a8d94efaadc7fa77306f"
+    },
+    "provenance_pilot.json": {
+      "sha256": "cd9021015b4170fb52e33d0276baa0aede0e414cb8967e9fc0411580130b13ed"
+    }
+  },
+  "confirmatory": {
+    "analysis_summary.json": {
+      "sha256": "23680248d1e7c2965e24e3d83f007a31d9f8d030d98a213bdfbdd761bc81240e"
+    },
+    "bootstrap_replicates.csv": {
+      "sha256": "2b422f906b3df680e6cbf210c8a1c063ab0bb08df34e10174d7e358866ab18fd"
+    },
+    "per_pair_full_no_text.csv": {
+      "sha256": "50e15586d3196db6f6b3548fce34e165f9acca27b7de9cd830b52f1722e51c57",
+      "rows": 7285,
+      "source_sha256": "636bc5c9eda868d4dbbe318d14ab6b905aa76cac1d0b91dfb55a06e6fc5c8d08",
+      "dropped_columns": [
+        "english_text",
+        "korean_text"
+      ]
+    },
+    "provenance_full.json": {
+      "sha256": "72709682cc3616e39653b5435e681b72f7715e2dbc245245f463c123c413b2ea"
+    },
+    "run.log": {
+      "sha256": "909cf758b8b3292b315560f1863506a9e366cc1c52d4f956302824d0af42dc42"
+    }
+  },
+  "globalvoices_v2018q4_en_ko_split_manifest.json": {
+    "sha256": "a0567871aa99833b7b8265620da154b9f84e36489e0c08c31f55d3564fc739bc"
+  }
+}

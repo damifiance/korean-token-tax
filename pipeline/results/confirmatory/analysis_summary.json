@@ -1,0 +1,466 @@
+{
+  "mode": "confirmatory",
+  "input_file": "out/confirmatory/per_pair_full.csv",
+  "input_sha256": "636bc5c9eda868d4dbbe318d14ab6b905aa76cac1d0b91dfb55a06e6fc5c8d08",
+  "spec_content_sha256": "850fa9be54de70b83761569b8daf157b40c035a307d815c3de76a4ae7311c3ff",
+  "exclusions": {
+    "rules": {
+      "drop_ko_equals_en": true,
+      "drop_ko_no_hangul": true,
+      "drop_control_chars": false,
+      "min_chars_ko": null,
+      "min_chars_en": null,
+      "char_ratio_ko_over_en": null
+    },
+    "n_rows_before": 7285,
+    "n_rows_after": 7046,
+    "n_rows_dropped": 239,
+    "n_clusters_before": 278,
+    "n_clusters_after": 278,
+    "dropped_by_rule_sequential": {
+      "drop_ko_equals_en": 104,
+      "drop_ko_no_hangul": 135
+    }
+  },
+  "estimands": {
+    "R_T": {
+      "point": 1.3887618444169234,
+      "ci_low": 1.3713853877498334,
+      "ci_high": 1.405789544695962,
+      "alpha_two_sided": 0.05,
+      "n_replicates": 10000
+    },
+    "R_B": {
+      "point": 1.3121468062260222,
+      "ci_low": 1.2958659349567168,
+      "ci_high": 1.3278147255570396,
+      "alpha_two_sided": 0.05,
+      "n_replicates": 10000
+    },
+    "R_eta": {
+      "point": 0.9448321261857044,
+      "ci_low": 0.9363104837057724,
+      "ci_high": 0.9532021494131916,
+      "alpha_two_sided": 0.05,
+      "n_replicates": 10000
+    },
+    "one_minus_R_eta": {
+      "point": 0.055167873814295554,
+      "ci_low": 0.046797850586808354,
+      "ci_high": 0.0636895162942276,
+      "alpha_two_sided": 0.05,
+      "n_replicates": 10000
+    },
+    "C_K": {
+      "point": 0.8665220493081595,
+      "ci_low": 0.8600652839721387,
+      "ci_high": 0.8729095898044362,
+      "alpha_two_sided": 0.05,
+      "n_replicates": 10000
+    },
+    "R_T_koreanfit": {
+      "point": 0.5094655263652037,
+      "ci_low": 0.5025030419493512,
+      "ci_high": 0.5163148125032943,
+      "alpha_two_sided": 0.05,
+      "n_replicates": 10000
+    },
+    "G": {
+      "point": 0.3668487353777383,
+      "ci_low": 0.36289001477206706,
+      "ci_high": 0.37068448055949804,
+      "alpha_two_sided": 0.05,
+      "n_replicates": 10000
+    }
+  },
+  "identity_check_R_eta_equals_RB_over_RT": 0.0,
+  "n_pairs": 7046,
+  "n_clusters": 278,
+  "genres": {
+    "news": 7046
+  },
+  "bootstrap": {
+    "n_replicates": 10000,
+    "seed": 20260910
+  },
+  "interpretation_guards": [
+    "B_M is model-relative surprisal, not semantic information or intrinsic entropy.",
+    "Parallel meaning does not guarantee equal textual entropy or model NLL.",
+    "Korean information differences and tokenizer inefficiency may coexist.",
+    "R_T, R_B, R_eta are functionally dependent (R_eta = R_B/R_T).",
+    "1 - R_eta is a relative shortfall under an English-efficiency counterfactual, not a literal fraction of zero-information tokens.",
+    "C_K < 1 measures absolute Korean-token reduction under the comparison tokenizer; attribution to training-language balance still requires controlling algorithm, vocab size, normalization, pre-tokenization, and training-corpus size.",
+    "G is exploratory gap contraction only: it can fall because English token count rises even when Korean token count does not fall. Attribution likewise requires controlling algorithm, vocab size, normalization, pre-tokenization, and training-corpus size.",
+    "Per-genre, per-length-stratum, per-pair-distribution and permutation results are exploratory; the confirmatory decisions are the prespecified bootstrap bounds only."
+  ],
+  "endpoints": {
+    "primary": "R_eta",
+    "confirmatory": [
+      "R_eta",
+      "R_T",
+      "C_K"
+    ],
+    "decision_rule": "all_confirmatory_pass",
+    "exploratory": [
+      "R_B_equivalence",
+      "one_minus_R_eta",
+      "G",
+      "R_T_koreanfit",
+      "length_strata",
+      "permutation_tests",
+      "FLORES_replication"
+    ]
+  },
+  "confirmatory_decisions": {
+    "R_T": {
+      "rule": "one-sided 95% lower bound > c_T=1.2",
+      "lower_bound": 1.3740987265393065,
+      "pass": true
+    },
+    "R_eta": {
+      "rule": "one-sided 95% upper bound < c_eta=0.95",
+      "upper_bound": 0.9518812594849237,
+      "pass": false
+    },
+    "note": "R_eta = R_B / R_T; these three endpoints are functionally dependent.",
+    "C_K": {
+      "rule": "one-sided 95% upper bound < c_C=0.9",
+      "upper_bound": 0.8719328540051784,
+      "pass": true,
+      "note": "C_K < 1 is an absolute reduction in Korean token count under the comparison tokenizer. Attribution to training-language balance still requires controlling algorithm, vocab size, normalization, pre-tokenization, and training-corpus size."
+    }
+  },
+  "exploratory_decisions": {
+    "note": "computed with the frozen thresholds but NOT part of the confirmatory rule",
+    "R_B_equivalence": {
+      "rule": "90% CI inside [0.8333, 1.2]",
+      "ci": [
+        1.2983803032581316,
+        1.3251745147154126
+      ],
+      "pass": false
+    }
+  },
+  "overall_decision": {
+    "rule": "all_confirmatory_pass",
+    "confirmatory_comparisons": [
+      "R_eta",
+      "R_T",
+      "C_K"
+    ],
+    "per_comparison_pass": {
+      "R_eta": false,
+      "R_T": true,
+      "C_K": true
+    },
+    "overall_pass": false,
+    "exploratory_decisions_reported_separately": [
+      "R_B_equivalence"
+    ]
+  },
+  "exploratory": {
+    "per_pair_ratio_distribution": {
+      "R_T": {
+        "n": 7046,
+        "mean": 1.4892790092561599,
+        "median": 1.4285714285714286,
+        "geometric_mean": 1.4017765140622718,
+        "p05": 0.7619047619047619,
+        "p25": 1.1818181818181819,
+        "p75": 1.7,
+        "p95": 2.3636363636363638
+      },
+      "R_B": {
+        "n": 7046,
+        "mean": 1.3962828427620189,
+        "median": 1.3569805322459398,
+        "geometric_mean": 1.3308104547446307,
+        "p05": 0.7660799511667626,
+        "p25": 1.1403646068277846,
+        "p75": 1.6008677510472467,
+        "p95": 2.090803891942505
+      },
+      "R_eta": {
+        "n": 7046,
+        "mean": 0.9733480611298886,
+        "median": 0.9441589212191956,
+        "geometric_mean": 0.9493741986645323,
+        "p05": 0.6663853521822127,
+        "p25": 0.8242826195066929,
+        "p75": 1.0883179995557364,
+        "p95": 1.3687942312787453
+      },
+      "note": "Per-pair ratios are descriptive only; the estimand is the pooled ratio-of-sums and is not the mean of these ratios."
+    },
+    "per_genre": {
+      "note": "pooled estimands within each genre; cluster bootstrap within genre",
+      "levels": {
+        "news": {
+          "n_pairs": 7046,
+          "n_clusters": 278,
+          "estimands": {
+            "R_T": {
+              "point": 1.3887618444169234,
+              "ci_low": 1.3713726297362645,
+              "ci_high": 1.405957580812447,
+              "alpha_two_sided": 0.05,
+              "n_replicates": 10000
+            },
+            "R_B": {
+              "point": 1.3121468062260222,
+              "ci_low": 1.2962510902710924,
+              "ci_high": 1.3277287636354083,
+              "alpha_two_sided": 0.05,
+              "n_replicates": 10000
+            },
+            "R_eta": {
+              "point": 0.9448321261857044,
+              "ci_low": 0.9363421412625136,
+              "ci_high": 0.9532380701228673,
+              "alpha_two_sided": 0.05,
+              "n_replicates": 10000
+            },
+            "one_minus_R_eta": {
+              "point": 0.055167873814295554,
+              "ci_low": 0.04676192987713271,
+              "ci_high": 0.06365785873748642,
+              "alpha_two_sided": 0.05,
+              "n_replicates": 10000
+            },
+            "C_K": {
+              "point": 0.8665220493081595,
+              "ci_low": 0.8602052459765674,
+              "ci_high": 0.8728751630662324,
+              "alpha_two_sided": 0.05,
+              "n_replicates": 10000
+            },
+            "R_T_koreanfit": {
+              "point": 0.5094655263652037,
+              "ci_low": 0.5025442170961528,
+              "ci_high": 0.5161195039570952,
+              "alpha_two_sided": 0.05,
+              "n_replicates": 10000
+            },
+            "G": {
+              "point": 0.3668487353777383,
+              "ci_low": 0.3627892717218226,
+              "ci_high": 0.37066331821916865,
+              "alpha_two_sided": 0.05,
+              "n_replicates": 10000
+            }
+          }
+        }
+      }
+    },
+    "length_strata": {
+      "length_variable": "n_chars_en",
+      "n_strata": 3,
+      "ranges": {
+        "Q1": [
+          3.0,
+          74.0
+        ],
+        "Q2": [
+          74.0,
+          137.0
+        ],
+        "Q3": [
+          137.0,
+          587.0
+        ]
+      },
+      "note": "quantile bins of the length variable over the analysed rows; clusters may span bins; Q1 = shortest",
+      "levels": {
+        "Q1": {
+          "n_pairs": 2349,
+          "n_clusters": 263,
+          "estimands": {
+            "R_T": {
+              "point": 1.563685963011995,
+              "ci_low": 1.5334765576753213,
+              "ci_high": 1.594422418187464,
+              "alpha_two_sided": 0.05,
+              "n_replicates": 10000
+            },
+            "R_B": {
+              "point": 1.4187199910934614,
+              "ci_low": 1.3944098181808773,
+              "ci_high": 1.4436467884191955,
+              "alpha_two_sided": 0.05,
+              "n_replicates": 10000
+            },
+            "R_eta": {
+              "point": 0.9072921447479786,
+              "ci_low": 0.8943524552447055,
+              "ci_high": 0.9205447598937294,
+              "alpha_two_sided": 0.05,
+              "n_replicates": 10000
+            },
+            "one_minus_R_eta": {
+              "point": 0.09270785525202141,
+              "ci_low": 0.0794552401062706,
+              "ci_high": 0.1056475447552945,
+              "alpha_two_sided": 0.05,
+              "n_replicates": 10000
+            },
+            "C_K": {
+              "point": 0.8821899533069937,
+              "ci_low": 0.8731767153052572,
+              "ci_high": 0.8912612967880168,
+              "alpha_two_sided": 0.05,
+              "n_replicates": 10000
+            },
+            "R_T_koreanfit": {
+              "point": 0.6209100758396533,
+              "ci_low": 0.6093274981378362,
+              "ci_high": 0.6326980970376422,
+              "alpha_two_sided": 0.05,
+              "n_replicates": 10000
+            },
+            "G": {
+              "point": 0.3970810575313007,
+              "ci_low": 0.39131865509591734,
+              "ci_high": 0.4029899812347696,
+              "alpha_two_sided": 0.05,
+              "n_replicates": 10000
+            }
+          }
+        },
+        "Q2": {
+          "n_pairs": 2348,
+          "n_clusters": 267,
+          "estimands": {
+            "R_T": {
+              "point": 1.4148009116503553,
+              "ci_low": 1.3917611227352775,
+              "ci_high": 1.4383646792243137,
+              "alpha_two_sided": 0.05,
+              "n_replicates": 10000
+            },
+            "R_B": {
+              "point": 1.317639674492114,
+              "ci_low": 1.2960720675703565,
+              "ci_high": 1.3390551570948797,
+              "alpha_two_sided": 0.05,
+              "n_replicates": 10000
+            },
+            "R_eta": {
+              "point": 0.9313251522824484,
+              "ci_low": 0.919205434076976,
+              "ci_high": 0.9437777725218485,
+              "alpha_two_sided": 0.05,
+              "n_replicates": 10000
+            },
+            "one_minus_R_eta": {
+              "point": 0.06867484771755161,
+              "ci_low": 0.05622222747815153,
+              "ci_high": 0.08079456592302399,
+              "alpha_two_sided": 0.05,
+              "n_replicates": 10000
+            },
+            "C_K": {
+              "point": 0.8679319354009015,
+              "ci_low": 0.860298799097493,
+              "ci_high": 0.8756838307696886,
+              "alpha_two_sided": 0.05,
+              "n_replicates": 10000
+            },
+            "R_T_koreanfit": {
+              "point": 0.5276954732510288,
+              "ci_low": 0.5191485696857021,
+              "ci_high": 0.536159807523866,
+              "alpha_two_sided": 0.05,
+              "n_replicates": 10000
+            },
+            "G": {
+              "point": 0.37298214109536854,
+              "ci_low": 0.3680256129811309,
+              "ci_high": 0.37794187186549494,
+              "alpha_two_sided": 0.05,
+              "n_replicates": 10000
+            }
+          }
+        },
+        "Q3": {
+          "n_pairs": 2349,
+          "n_clusters": 274,
+          "estimands": {
+            "R_T": {
+              "point": 1.3294666459337583,
+              "ci_low": 1.305819367560796,
+              "ci_high": 1.3512478099120058,
+              "alpha_two_sided": 0.05,
+              "n_replicates": 10000
+            },
+            "R_B": {
+              "point": 1.2714327380769548,
+              "ci_low": 1.2491442428399968,
+              "ci_high": 1.2922122467779484,
+              "alpha_two_sided": 0.05,
+              "n_replicates": 10000
+            },
+            "R_eta": {
+              "point": 0.9563479775635566,
+              "ci_low": 0.9464169081063697,
+              "ci_high": 0.9660376510800767,
+              "alpha_two_sided": 0.05,
+              "n_replicates": 10000
+            },
+            "one_minus_R_eta": {
+              "point": 0.043652022436443394,
+              "ci_low": 0.033962348919923294,
+              "ci_high": 0.053583091893630336,
+              "alpha_two_sided": 0.05,
+              "n_replicates": 10000
+            },
+            "C_K": {
+              "point": 0.860948014378504,
+              "ci_low": 0.8530272253081154,
+              "ci_high": 0.869176829451516,
+              "alpha_two_sided": 0.05,
+              "n_replicates": 10000
+            },
+            "R_T_koreanfit": {
+              "point": 0.4734998091660341,
+              "ci_low": 0.465009603796186,
+              "ci_high": 0.4816232929850499,
+              "alpha_two_sided": 0.05,
+              "n_replicates": 10000
+            },
+            "G": {
+              "point": 0.35615771980008487,
+              "ci_low": 0.35190828837934107,
+              "ci_high": 0.360499210709078,
+              "alpha_two_sided": 0.05,
+              "n_replicates": 10000
+            }
+          }
+        }
+      }
+    },
+    "permutation_tests": {
+      "method": "cluster-level sign-flip permutation of the Korean/English labels; statistic = log pooled ratio; two-sided",
+      "n_permutations": 10000,
+      "n_clusters": 278,
+      "seed": 20260913,
+      "R_T": {
+        "log_ratio_obs": 0.32841259076840057,
+        "p_value": 9.999000099990002e-05
+      },
+      "R_B": {
+        "log_ratio_obs": 0.2716645792514658,
+        "p_value": 9.999000099990002e-05
+      },
+      "R_eta": {
+        "log_ratio_obs": -0.05674801151693476,
+        "p_value": 9.999000099990002e-05
+      },
+      "note": "R_T, R_B and R_eta are functionally dependent; p-values are not independent evidence. Minimum attainable p is 1/(1+n_permutations).",
+      "C_K": {
+        "log_ratio_obs": -0.1432677237472767,
+        "p_value": 9.999000099990002e-05,
+        "h0": "baseline and Korean-fit Korean token counts exchangeable within pairs"
+      }
+    }
+  }
+}
