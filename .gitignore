@@ -21,3 +21,14 @@ pipeline/out/
 flores_plus_corpus/raw/
 flores_plus_corpus/processed/
 flores_plus_corpus/manifest.json
+
+# compiled paper is kept; LaTeX build files are not
+!paper/main.pdf
+paper/*.aux
+paper/*.bbl
+paper/*.blg
+paper/*.log
+paper/*.out
+paper/*.fls
+paper/*.fdb_latexmk
+paper/*.toc

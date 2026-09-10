@@ -1,0 +1,572 @@
+\documentclass[11pt,a4paper]{article}
+
+% ---------------------------------------------------------------------------
+% Korean encoding tax: a pre-registered code-length measurement
+% Draft generated 2026-09-10 from the frozen measurement spec (hash 850fa9be)
+% and the held-out analysis in pipeline/results/. Every number in the tables
+% is copied from results/*/analysis_summary.json; the tokenizer-generation
+% counterfactual in Sec. 5.4 is post hoc and labelled as such.
+% ---------------------------------------------------------------------------
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{microtype}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage{caption}
+\usepackage{enumitem}
+
+\hypersetup{colorlinks=true,linkcolor=blue!60!black,citecolor=blue!60!black,urlcolor=blue!60!black}
+\captionsetup{font=small,labelfont=bf}
+
+\newcommand{\RT}{R_{T}}
+\newcommand{\RB}{R_{B}}
+\newcommand{\Reta}{R_{\eta}}
+\newcommand{\CK}{C_{K}}
+\newcommand{\ko}{\mathrm{KR}}
+\newcommand{\en}{\mathrm{EN}}
+
+\title{Is Korean's Higher LLM Token Cost Information or Encoding?\\
+\large A pre-registered code-length measurement on an aligned Korean--English corpus}
+
+\author{Jaehyung Park\\
+Department of Electrical and Computer Engineering, Seoul National University\\
+\texttt{jh0420park@gmail.com}}
+% TODO: confirm the romanisation of 박재형 before submission.
+
+\date{Draft of 10 September 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+The same message costs more tokens in Korean than in English under
+present-day large-language-model (LLM) tokenizers. Two explanations compete:
+the Korean text may carry more information (an \emph{information}
+hypothesis), or an English-centric tokenizer may encode Korean inefficiently
+(an \emph{encoding} hypothesis). Token counts alone cannot separate them.
+Following Shannon, we treat a tokenizer as a code and a fixed language model
+as a codebook, and measure each message's model-relative code length
+$B_M(s)=-\sum_j \log_2 P_M(z_j\mid z_{<j})$ in bits. On 7{,}046 aligned
+sentence pairs from 278 Global Voices articles, held out until the analysis
+plan was cryptographically frozen, the Korean side costs 1.389 times as many
+\texttt{o200k\_base} tokens as the English side (95\% cluster-bootstrap CI
+1.371--1.406) but also 1.312 times as many bits under Qwen3-1.7B-Base
+(1.296--1.328). The pooled efficiency ratio
+$\Reta=\RB/\RT=0.945$ (0.936--0.953) implies a 5.5\% shortfall in bits per
+Korean token. The pre-registered rule for the primary endpoint required the
+one-sided 95\% upper bound of $\Reta$ to fall below 0.95; the observed bound
+was 0.952, so the confirmatory rule was not met, while the token-ratio and
+tokenizer-control comparisons passed ($\CK=0.867$: a Korean-trained tokenizer
+encodes the same Korean in 13\% fewer tokens). Exploratory analyses show the
+shortfall is larger for short messages (9.3\% in the shortest tercile) and
+that it would have been 41\% and 71\% under the previous two OpenAI
+tokenizer generations. We argue that the residual Korean token surplus under
+a current tokenizer is dominated by model-relative bits rather than by
+encoding waste, and that the remaining encoding effect, while consistently
+present, is small.
+\end{abstract}
+
+\section{Introduction}
+
+Users of LLM application programming interfaces (APIs) are billed per
+token, and a widely repeated observation is that Korean text is charged for
+substantially more tokens than English text of the same meaning. The
+observation is usually attributed to tokenizers trained predominantly on
+English, which split Korean into many short byte-level fragments. That
+attribution is plausible, but it is not the only one. Korean and English
+versions of a message are translations, not copies: the Korean may add
+honorific marking, explicit topic particles, or explanatory expansion, and a
+model may find Korean harder to predict. Both mechanisms raise the token
+count, so the token count itself cannot tell them apart.
+
+The information-theoretic view separates them cleanly. A tokenizer is a code
+that maps text to symbols; how many symbols a message needs is a property of
+the code. How much information the message carries is a property of the
+message and of the receiver's predictive model. If Korean needs more tokens
+\emph{and} more bits in proportion, the surplus is information. If Korean
+needs more tokens but not more bits, the surplus is encoding.
+
+This paper reports a measurement designed to make that distinction with the
+decision rules fixed in advance. The contributions are: (i) an estimand,
+the pooled efficiency ratio $\Reta$, that isolates encoding inefficiency
+from information content up to a stated model-relative caveat; (ii) a
+pipeline with unit tests that computes it reproducibly with pinned model,
+tokenizer, and corpus revisions; (iii) a pilot/held-out split with
+thresholds frozen by content hash before the held-out data were scored; and
+(iv) the confirmatory result, which narrowly fails the pre-registered
+primary rule, together with exploratory analyses that explain why.
+
+\section{Background: tokenizers as codes, models as codebooks}
+\label{sec:background}
+
+Shannon's source-coding theorem distinguishes the information in a message
+from the number of symbols used to write it down \citep{shannon1948}. An
+ideal code assigns to a symbol of probability $p$ a codeword of length
+$-\log_2 p$ bits; a code adapted to a different source wastes symbols.
+Shannon's later experiment on printed English estimated the entropy of a
+language from a human predictor's guesses \citep{shannon1951}; a language
+model plays the same predictive role today, with the difference that its
+predictions are explicit probabilities.
+
+Let $M$ be a fixed autoregressive language model with its own tokenizer
+$\tau_M$. For a message $s$, write $z=\tau_M(s)=(z_1,\dots,z_n)$. The
+\emph{model-relative code length} is
+\begin{equation}
+  B_M(s) \;=\; -\sum_{j=1}^{n} \log_2 P_M\!\left(z_j \mid z_{<j}\right),
+  \label{eq:bits}
+\end{equation}
+the number of bits an arithmetic coder driven by $M$ would spend to transmit
+$s$ \citep{mackay2003}. Two properties matter. First, $B_M(s)$ does not
+depend on any \emph{billing} tokenizer: it is computed through $\tau_M$ only.
+Second, it is model-relative. Writing $P$ for the true conditional
+distribution and $Q$ for the model's, the expected code length decomposes as
+$H(P,Q)=H(P)+D_{\mathrm{KL}}(P\,\|\,Q)$, so $B_M$ includes the model's own
+prediction error. A model that knows Korean less well than English will
+overprice Korean text; the direction of this bias is discussed in
+Section~\ref{sec:discussion}.
+
+For a billing tokenizer $b$ with $T_b(s)=|\tau_b(s)|$, the efficiency of $b$
+on $s$ is the number of bits carried per billed token,
+$\eta_{M,b}(s)=B_M(s)/T_b(s)$. The corpus-level estimands are ratios of
+sums over aligned pairs $i$:
+\begin{equation}
+  \RT=\frac{\sum_i T_{i,\ko}}{\sum_i T_{i,\en}},\qquad
+  \RB=\frac{\sum_i B_{i,\ko}}{\sum_i B_{i,\en}},\qquad
+  \Reta=\frac{\sum_i B_{i,\ko}/\sum_i T_{i,\ko}}{\sum_i B_{i,\en}/\sum_i T_{i,\en}}
+       =\frac{\RB}{\RT}.
+  \label{eq:estimands}
+\end{equation}
+Under the information hypothesis $\RB\approx\RT$ and $\Reta\approx 1$; under
+the encoding hypothesis $\RT\gg 1$, $\RB\approx 1$, and $\Reta<1$. The
+quantity $1-\Reta$ is the relative shortfall in bits per Korean token
+compared with an English-efficiency counterfactual. It is not a literal count
+of empty tokens. Ratios of sums are used rather than means of per-message
+ratios because the latter are biased upward by short messages and do not
+satisfy the identity $\Reta=\RB/\RT$.
+
+An independent control uses a tokenizer trained on Korean, $k$. The Korean
+text and therefore its information are unchanged; only the code changes.
+The absolute Korean-token reduction
+\begin{equation}
+  \CK=\frac{\sum_i T^{(k)}_{i,\ko}}{\sum_i T^{(b)}_{i,\ko}}
+\end{equation}
+measures how much of the Korean cost under $b$ is removable by a different
+code. $\CK<1$ shows tokenizer dependence; attributing it to training-language
+balance alone would require holding the algorithm, vocabulary size,
+normalisation, and pre-tokenisation fixed, which two off-the-shelf tokenizers
+do not.
+
+\section{Measurement design}
+\label{sec:design}
+
+\subsection{Corpus and split}
+
+We use the OPUS packaging of Global Voices v2018q4 in English and Korean
+\citep{tiedemann2012opus}, a citizen-media news collection whose articles are
+translated by volunteers. The archive contains 365 article-level alignment
+groups, of which 347 contain aligned text, yielding 9{,}017 aligned sentence
+pairs. Article identity is preserved as a cluster identifier; the corpus has
+one genre (news), and the translation direction is not recorded.
+
+The release has no train/test division, so a deterministic article-level
+split was created before any scoring. Articles connected by an identical
+bilingual pair were merged into indivisible components; components were
+ranked by a seeded SHA-256 rule (seed 20260910) and the prefix closest to 20\%
+of articles was assigned to the pilot. The pilot contains 69 articles
+(1{,}732 pairs) and the held-out set 278 articles (7{,}285 pairs); no article
+or exact bilingual pair crosses the split. The held-out file was neither
+inspected nor scored until the specification was frozen.
+
+Only Unicode NFC normalisation and surrounding-whitespace removal are
+applied. Validation flags record rows whose Korean side contains no Hangul,
+rows whose Korean and English text are identical (untranslated photo credits
+and licence strings), disallowed control characters, and length statistics.
+
+\subsection{Estimator model and scoring policy}
+
+The estimator is Qwen3-1.7B-Base \citep{qwen3} at revision
+\texttt{ea980cb0}, run in bfloat16 with the log-softmax computed in
+float32. Every message is scored in evaluation and inference mode from raw
+next-token logits. The model's document-boundary token
+(\texttt{<|endoftext|>}, id 151643) is prepended and every content token is
+scored conditional on it, so that the first content token receives a code
+length; no end-of-sequence event is charged. Special tokens are never added
+implicitly (\texttt{add\_special\_tokens=False}), padding is never scored,
+and the pipeline asserts on every call that the number of scored targets
+equals the number of content tokens. The longest message (587 characters)
+is far below the 32{,}768-token context, so no chunking occurred.
+
+\subsection{Tokenizers}
+
+The baseline billing tokenizer is OpenAI's \texttt{o200k\_base} encoding
+(tiktoken 0.14.0; 199{,}998 mergeable tokens), used by the GPT-4o
+generation \citep{tiktoken}. The Korean-trained comparison tokenizer is that
+of EleutherAI's Polyglot-Ko-1.3B \citep{polyglotko} at revision
+\texttt{557e162c}, a 30{,}000-entry byte-level BPE trained on a Korean-only
+corpus. Token counts are content-only, with no chat template or wrapper
+tokens. Counting tokenizers return integers only; their token ids are never
+fed to the estimator, and the estimator is scored only through its own
+tokenizer. All tokenizer files are hashed and the hashes recorded in the
+provenance of every run.
+
+\subsection{Pre-registration}
+\label{sec:prereg}
+
+Ratios described as ``well above one'' or ``close to one'' are meaningless
+until thresholds are fixed, and thresholds chosen after seeing the data
+prove nothing. All thresholds, endpoints, and exclusion rules were therefore
+written into a specification file whose content hash (SHA-256
+\texttt{850fa9be}\ldots) was recorded when it was frozen on 10 September
+2026, after the pilot had been analysed and before the held-out set was
+scored. The analysis program refuses to run in confirmatory mode on an
+unfrozen or subsequently edited specification and refuses pilot-tagged
+input files. The frozen decisions are listed in Table~\ref{tab:spec}.
+
+\begin{table}[t]
+\centering\small
+\caption{Frozen decisions. Bounds are cluster-bootstrap percentiles.}
+\label{tab:spec}
+\begin{tabularx}{\textwidth}{@{}l>{\raggedright\arraybackslash}p{5.2cm}>{\raggedright\arraybackslash}X@{}}
+\toprule
+Decision & Value & Rule on the held-out bootstrap \\
+\midrule
+Primary endpoint & $\Reta$ & one-sided 95\% upper bound $<c_\eta=0.95$ \\
+Token ratio & $\RT$ & one-sided 95\% lower bound $>c_T=1.20$ \\
+Tokenizer control & $\CK$ & one-sided 95\% upper bound $<c_C=0.90$ \\
+Overall rule & all three confirmatory comparisons must pass & \texttt{all\_confirmatory\_pass} \\
+Bit-ratio equivalence (exploratory) & $\RB$ & 90\% CI inside $[0.8333,\,1.20]$ \\
+Exclusions & identical KR/EN text; no Hangul on KR side & applied identically to pilot and held-out \\
+Bootstrap & 10{,}000 replicates, seed 20260910 & whole articles resampled, both languages together \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+The pilot informed these choices in two ways. Its point estimates
+($\Reta=0.940$, $\RT=1.377$, $\CK=0.870$ after exclusions) located the
+effect, and a precision simulation, which resampled the pilot's per-article
+sums to the held-out article count, described the distribution of the
+bootstrap bounds that the rules would use. For $c_\eta=0.95$ that
+simulation gave a pass probability of 0.78 conditional on the pilot values
+carrying over unchanged; the threshold lay 1.25 pilot standard errors above
+the pilot point estimate. This is recorded here because it bears directly on
+the interpretation of the confirmatory outcome.
+
+\subsection{Statistical analysis}
+
+All estimands are ratios of corpus sums, Eq.~\eqref{eq:estimands}.
+Uncertainty is quantified by a paired, stratified cluster bootstrap:
+articles are resampled with replacement within genre strata, every pair of a
+resampled article enters with both its Korean and English measurements, and
+each pooled ratio is recomputed in every replicate. Because the estimands are
+functions of column sums only, per-article sums are precomputed and the
+bootstrap is exact. The identity $\Reta=\RB/\RT$ is asserted in every
+replicate. One-sided decision bounds are the 5th or 95th percentiles;
+equivalence for $\RB$ uses the two one-sided tests procedure, requiring the
+90\% percentile interval to lie inside the pre-specified interval
+\citep{schuirmann1987}.
+
+Exploratory analyses, which never feed the confirmatory rule, are: pooled
+estimands within terciles of English character count; the distribution of
+per-message ratios; and paired cluster-level sign-flip permutation tests in
+which the Korean and English measurements of all pairs in a randomly chosen
+set of articles are exchanged, with the log pooled ratio as statistic and
+10{,}000 permutations. The three language ratios are functionally dependent
+and are reported as one finding seen from three angles.
+
+\subsection{Implementation}
+
+The pipeline is a Python package (\texttt{klen}) with 66 unit tests,
+including hand-verifiable code-length cases (a uniform fake model yields
+exactly $\log_2 10$ bits per token; a biased fake model exactly 1 bit),
+whole-cluster resampling verified against the enumerable set of possible
+replicates, stratum preservation, freeze and tamper detection, and an
+independent re-implementation cross-check against a tiny random model.
+Provenance for every run records package versions (PyTorch 2.14.0,
+Transformers 5.17.0, Python 3.13.1), tokenizer file hashes, the dataset
+hash, the device (Apple M4 Pro, MPS backend), the specification, and the
+validation report. The held-out run took 34 minutes.
+
+\section{Results}
+\label{sec:results}
+
+\subsection{Sample}
+
+After the frozen exclusion rules, the held-out set comprises 7{,}046 pairs
+in 278 articles (239 rows dropped: 104 with identical Korean and English
+text and a further 135 with no Hangul on the Korean side). The pilot after
+the same rules comprises 1{,}672 pairs in 69 articles. No row changed under
+NFC normalisation; no pair id was duplicated.
+
+\subsection{Pooled estimands and confirmatory decisions}
+
+\begin{table}[t]
+\centering\small
+\caption{Held-out pooled estimands (278 articles, 7{,}046 pairs) with 95\%
+cluster-bootstrap percentile intervals, and the pre-registered decisions.
+$\RT$ and $\CK$ use \texttt{o200k\_base}; $\CK$ and the Korean-fit row use
+Polyglot-Ko. Bits are Qwen3-1.7B-Base code lengths.}
+\label{tab:main}
+\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{4.6cm}cc>{\raggedright\arraybackslash}Xl@{}}
+\toprule
+Quantity & Point & 95\% CI & Decision bound & Result \\
+\midrule
+$\RT$ token ratio KR/EN & 1.3888 & [1.3714, 1.4058] & lower 1.3741 $>1.20$ & pass \\
+$\RB$ bit ratio KR/EN & 1.3121 & [1.2959, 1.3278] & 90\% CI [1.2984, 1.3252], outside $[0.8333, 1.20]$ & exploratory \\
+$\Reta=\RB/\RT$ (primary) & 0.9448 & [0.9363, 0.9532] & upper 0.9519 $\not<0.95$ & \textbf{fail} \\
+$1-\Reta$ shortfall & 0.0552 & [0.0468, 0.0637] & --- & --- \\
+$\CK$ Korean tokens, Polyglot/o200k & 0.8665 & [0.8601, 0.8729] & upper 0.8719 $<0.90$ & pass \\
+$\RT$ under Polyglot-Ko & 0.5095 & [0.5025, 0.5163] & --- & exploratory \\
+$G$ gap contraction & 0.3668 & [0.3629, 0.3707] & --- & exploratory \\
+\midrule
+Overall (\texttt{all\_confirmatory\_pass}) & & & & \textbf{fail} \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Table~\ref{tab:main} gives the held-out estimates. The Korean side costs
+38.9\% more \texttt{o200k\_base} tokens and 31.2\% more bits than the
+English side. The efficiency ratio is $\Reta=0.945$: a Korean token carries
+5.5\% fewer bits than an English token, with a 95\% interval of 4.7\% to
+6.4\%. The token-ratio and tokenizer-control comparisons pass their
+pre-registered rules with wide margins. The primary comparison does not:
+the one-sided 95\% upper bound of $\Reta$ is 0.9519, above the frozen
+threshold of 0.95, and under the overall rule the confirmatory claim is
+therefore not supported. The bit ratio is far outside the exploratory
+equivalence interval; Korean text costs more bits as well as more tokens.
+
+The pilot and held-out estimates agree closely (Table~\ref{tab:pilot}). The
+held-out $\Reta$ is 0.0048 above the pilot value, about 1.2 held-out
+standard errors, an ordinary sampling shift; with the threshold placed 1.25
+pilot standard errors above the pilot estimate, that shift was enough.
+
+\begin{table}[t]
+\centering\small
+\caption{Pilot versus held-out point estimates after identical exclusions.}
+\label{tab:pilot}
+\begin{tabular}{@{}lcc@{}}
+\toprule
+Quantity & Pilot (69 articles, 1{,}672 pairs) & Held-out (278 articles, 7{,}046 pairs) \\
+\midrule
+$\RT$   & 1.3769 & 1.3888 \\
+$\RB$   & 1.2943 & 1.3121 \\
+$\Reta$ & 0.9400 & 0.9448 \\
+$\CK$   & 0.8697 & 0.8665 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Exploratory analyses}
+
+\paragraph{Message length.} Table~\ref{tab:length} splits the held-out pairs
+into terciles of English character count. The token surplus, the bit
+surplus, and the efficiency shortfall all shrink with length: $1-\Reta$ is
+9.3\% in the shortest tercile and 4.4\% in the longest, with non-overlapping
+intervals. Because pooled ratios weight by tokens, the corpus-level estimate
+is dominated by long messages. Part of the length dependence is mechanical:
+under the prepend-BOS policy the first content token is scored from a
+document boundary and is expensive in both languages, and this fixed cost is
+a larger fraction of a short message.
+
+\begin{table}[t]
+\centering\small
+\caption{Held-out pooled estimands within terciles of English character
+count (exploratory). Articles may span terciles; bootstrap within tercile.}
+\label{tab:length}
+\begin{tabular}{@{}lcccccc@{}}
+\toprule
+Tercile & Chars (EN) & $n$ & $\RT$ & $\RB$ & $\Reta$ [95\% CI] & $\CK$ \\
+\midrule
+Q1 (short) & 3--74    & 2{,}349 & 1.564 & 1.419 & 0.907 [0.894, 0.921] & 0.882 \\
+Q2         & 74--137  & 2{,}348 & 1.415 & 1.318 & 0.931 [0.919, 0.944] & 0.868 \\
+Q3 (long)  & 137--587 & 2{,}349 & 1.329 & 1.271 & 0.956 [0.946, 0.966] & 0.861 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Per-message distribution.} Per-message ratios are descriptive
+only. The median per-pair token ratio is 1.429 (5th--95th percentiles
+0.762--2.364), the median bit ratio 1.357 (0.766--2.091), and the median
+efficiency ratio 0.944 (0.666--1.369). Their arithmetic means (1.489, 1.396,
+0.973) exceed the pooled estimates, illustrating the upward bias of
+averaging ratios.
+
+\paragraph{Permutation tests.} Exchanging the Korean and English
+measurements of whole articles 10{,}000 times gives observed log pooled
+ratios of $+0.328$ ($\RT$), $+0.272$ ($\RB$), $-0.057$ ($\Reta$) and
+$-0.143$ ($\CK$), each with two-sided $p=1/10{,}001$, the smallest
+attainable value. The sign and existence of every effect are not in doubt;
+the confirmatory question was only its size.
+
+\subsection{Post hoc: the baseline tokenizer generation}
+\label{sec:generation}
+
+To understand why the effect is small, we recomputed $\RT$ and $\Reta$ on
+the held-out set holding the Qwen3 bits fixed and substituting the two
+previous OpenAI encodings for the billing tokenizer (Table~\ref{tab:gen}).
+This was done after the confirmatory analysis and is not part of it.
+
+\begin{table}[t]
+\centering\small
+\caption{Held-out $\RT$ and $\Reta$ under three OpenAI encodings with the
+same Qwen3-1.7B-Base bits (post hoc, exploratory).}
+\label{tab:gen}
+\begin{tabular}{@{}llcc@{}}
+\toprule
+Encoding & Model generation & $\RT$ & $\Reta$ \\
+\midrule
+\texttt{r50k\_base}   & GPT-3            & 4.591 & 0.286 \\
+\texttt{cl100k\_base} & GPT-3.5 / GPT-4  & 2.238 & 0.586 \\
+\texttt{o200k\_base}  & GPT-4o (frozen)  & 1.389 & 0.945 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Under the GPT-3 encoding a Korean token carried 71\% fewer bits than an
+English token; under the GPT-4 encoding 41\% fewer; under the current
+encoding 5.5\% fewer. Most of the historical Korean ``token tax'' has been
+removed by vocabulary growth and multilingual training of the tokenizer
+itself. The residual surplus under \texttt{o200k\_base} is dominated by the
+bit ratio.
+
+\section{Discussion}
+\label{sec:discussion}
+
+\subsection{Why the primary comparison failed}
+
+Two distinct things happened. Statistically, the threshold left almost no
+room: it was set 1.25 pilot standard errors above the pilot estimate, the
+pre-freeze simulation gave the rule only a 78\% chance of passing even if
+the pilot value were exactly right, and the held-out estimate moved up by an
+unremarkable 1.2 standard errors. A threshold of 0.96 would have passed in
+every simulated sample. None of this justifies revising the threshold now;
+it is precisely what a pre-registered rule is for.
+
+Substantively, $\Reta$ is close to one because $\RB$ is large, not because
+$\RT$ is small. Under the current tokenizer the Korean token surplus is
+39\%, and the model spends 31\% more bits on the Korean side. Three
+contributors, which the present design cannot separate, push $\RB$ upward:
+
+\begin{enumerate}[nosep]
+\item \emph{Estimator tokenization.} Bits are summed over the estimator's
+own tokens, and Qwen3's tokenizer splits the Korean side into 1.554 times as
+many tokens as the English side. Finer segmentation generally raises total
+code length, so part of the Korean bit surplus is a property of $\tau_M$
+rather than of the message.
+\item \emph{Model fluency.} The $D_{\mathrm{KL}}$ term is larger for the
+language the model predicts less well. A 1.7B-parameter model trained
+predominantly on English and Chinese plausibly overprices Korean. The
+held-out code lengths are 4.87 bits per Qwen token for Korean versus 5.77
+for English, and 1.42 versus 1.23 bits per UTF-8 byte.
+\item \emph{Translation content.} Global Voices Korean articles are
+volunteer translations that may add explanation; parallel meaning does not
+guarantee equal information.
+\end{enumerate}
+
+The first two contributors bias $\RB$ upward and $\Reta$ toward one, that
+is, \emph{against} the encoding hypothesis. The measured 5.5\% shortfall is
+therefore a lower bound on the encoding effect only in the direction of
+these biases, and the third contributor could act either way.
+
+\subsection{What the evidence supports}
+
+The pre-registered claim that Korean tokens carry substantially (at least 5\%)
+less information than English tokens under a present-generation tokenizer
+was not established at the 95\% level. What the data do establish, with
+narrow intervals and stable pilot-to-held-out agreement, is: (i) a
+consistent Korean token surplus of about 39\%; (ii) a consistent and
+smaller efficiency shortfall of about 5\%, larger for short messages;
+(iii) that a Korean-trained tokenizer removes about 13\% of the Korean
+tokens without changing the text; and (iv) that under earlier tokenizer
+generations the encoding shortfall was large. The picture is one in which
+encoding inefficiency was the dominant cause of Korean's token cost under
+older tokenizers and has become a minor cause under the current one, with
+the remaining surplus tracking model-relative bits.
+
+\subsection{Limitations}
+
+The estimator is a single small model; bits are Qwen3-1.7B-relative and the
+fluency bias is unquantified. A replication with a second estimator, and on
+the multi-genre FLORES+ corpus \citep{floresplus} for which a specification
+file is prepared, is planned as exploratory work. The corpus is one genre
+with unknown translation direction, and it predates the estimator's training
+cut-off, so training-data contamination is unknown rather than excluded. The
+three language ratios are functionally dependent. $\CK$ shows tokenizer
+dependence but not its cause. Finally, the study was run once as a complete
+test of the pipeline; if the design is revised, a new specification must be
+frozen and the held-out set re-scored, and the present result would then be
+reported as the outcome of the first pre-registration.
+
+\section{Conclusion}
+
+Treating tokenizers as codes and a fixed language model as a codebook turns
+the Korean token-cost question into a measurable comparison of symbols
+against bits. On 7{,}046 held-out aligned pairs the Korean side costs 39\%
+more tokens under \texttt{o200k\_base} and 31\% more Qwen3 bits, an
+efficiency shortfall of 5.5\% (95\% CI 4.7--6.4\%). The pre-registered rule,
+which required at least a 5\% shortfall with 95\% confidence, was narrowly
+not met. A Korean-trained tokenizer nonetheless encodes the same text in 13\%
+fewer tokens, and under previous tokenizer generations the shortfall would
+have been 41\% and 71\%. The encoding tax on Korean is real, has shrunk
+dramatically with tokenizer vocabulary growth, and under a current tokenizer
+is now small relative to the model-relative information cost.
+
+\section*{Reproducibility}
+
+Code, tests, the frozen specification, and all analysis outputs (bootstrap
+replicates, provenance, and per-pair measurements with corpus text removed)
+are at \url{https://github.com/damifiance/korean-token-tax}. The corpus is
+rebuilt from the OPUS archive by a script that reproduces the split; model
+and tokenizer files are fetched at the pinned revisions and hash-verified
+before every run.
+
+\bibliographystyle{plainnat}
+\bibliography{refs}
+
+\appendix
+
+\section{Pilot precision simulation}
+
+Before the thresholds were chosen, the pilot's 69 per-article sums were
+resampled with replacement to 278 articles 400 times; within each simulated
+sample a 2{,}000-replicate cluster bootstrap produced the bounds that the
+confirmatory rules use. Table~\ref{tab:precision} reports the quantiles of
+those bounds across simulations. The 95th percentile of the $\Reta$ upper
+bound, 0.953, coincides with the value later observed.
+
+\begin{table}[h]
+\centering\small
+\caption{Quantiles across 400 simulated held-out samples (278 articles) of
+the decision bounds, using pilot per-article sums as the population.}
+\label{tab:precision}
+\begin{tabular}{@{}lccccc@{}}
+\toprule
+Bound & 5\% & 25\% & 50\% & 75\% & 95\% \\
+\midrule
+$\RT$ lower 95\%    & 1.3325 & 1.3443 & 1.3518 & 1.3586 & 1.3684 \\
+$\RB$ 90\% CI low   & 1.2563 & 1.2654 & 1.2723 & 1.2782 & 1.2865 \\
+$\RB$ 90\% CI high  & 1.2863 & 1.2947 & 1.3013 & 1.3067 & 1.3157 \\
+$\Reta$ upper 95\%  & 0.9399 & 0.9440 & 0.9467 & 0.9495 & 0.9530 \\
+$\CK$ upper 95\%    & 0.8853 & 0.8902 & 0.8933 & 0.8970 & 0.9030 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Exclusion sensitivity on the pilot}
+
+Before the exclusion rules were chosen, every candidate rule was applied to
+the pilot. Dropping identical-text rows, rows without Hangul, rows shorter
+than five characters, rows with a Korean/English character ratio outside
+$[0.2,1.5]$, or all of these together moved $\Reta$ within 0.938--0.941 and
+$\RT$ within 1.368--1.393. The pooled estimands are insensitive to these
+choices; the rules adopted remove untranslated material on grounds of
+validity rather than effect.
+
+\end{document}
