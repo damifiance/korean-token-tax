@@ -1,0 +1,6 @@
+# FLORES+ is gated. Keep source text and aligned derivatives out of public repos.
+raw/
+processed/
+manifest.json
+__pycache__/
+*.pyc

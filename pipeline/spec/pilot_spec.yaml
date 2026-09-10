@@ -1,0 +1,77 @@
+# Pilot-only measurement specification. Never freeze this file and never use
+# its results for confirmatory decisions. The held-out corpus path appears only
+# in measurement_spec.yaml.
+
+spec_version: 1
+frozen: false
+frozen_at: null
+frozen_sha256: null
+
+corpus:
+  path: /Users/damifiance/study/2-2/대글2/pipeline/data/processed/globalvoices_v2018q4_en_ko_pilot.csv
+  format: csv
+  columns:
+    korean_text: ko_text
+    english_text: en_text
+    pair_id: pair_id
+    cluster_id: cluster_id
+    genre: genre
+    direction: translation_direction
+  normalization: NFC
+
+estimator:
+  model_id: Qwen/Qwen3-1.7B-Base
+  revision: ea980cb0a6c2ae4b936e82123acc929f1cec04c1
+  local_path: /Users/damifiance/study/2-2/대글2/pipeline/models/Qwen3-1.7B-Base-ea980cb
+  dtype: bfloat16
+  context_length: 32768
+  context_overlap: 16384
+
+tokenizers:
+  baseline:
+    id: tiktoken:o200k_base
+    revision: 0.14.0
+  korean_fit:
+    id: EleutherAI/polyglot-ko-1.3b
+    revision: 557e162cf6e944fdbae05bab2e45d066a125eacb
+
+token_accounting: content_only
+chat_template_config: null
+
+scoring_policy:
+  bos: prepend_bos
+  eos: none
+
+# These remain researcher decisions. They are intentionally unused in pilot mode.
+thresholds:
+  c_T: null
+  L_B: null
+  U_B: null
+  c_eta: null
+  c_C: null
+
+endpoints:
+  primary: null
+  confirmatory: []
+  exploratory: []
+
+exclusions:                  # researcher decision; null/false = keep. Applied identically to
+                             # pilot and held-out data at analysis time; part of the frozen content.
+  drop_ko_equals_en: true    # true: drop rows whose Korean and English text are identical (untranslated)
+  drop_ko_no_hangul: true    # true: drop rows whose Korean side contains no Hangul
+  drop_control_chars: false   # true: drop rows with disallowed control/format characters
+  min_chars_ko: null         # integer: drop rows with fewer Korean characters
+  min_chars_en: null         # integer: drop rows with fewer English characters
+  char_ratio_ko_over_en: null  # [lo, hi]: drop rows whose n_chars_ko/n_chars_en is outside
+
+exploratory:                 # descriptive analyses only; never feed confirmatory decisions
+  length_variable: n_chars_en    # column used for length strata
+  n_length_strata: 3
+  n_permutations: 10000
+  n_bootstrap_replicates_strata: 10000
+
+bootstrap:
+  n_replicates: 10000
+  seed: 20260910
+  alpha_two_sided: 0.05
+  alpha_equivalence: 0.05

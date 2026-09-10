@@ -1,0 +1,86 @@
+# FLORES+ (openlanguagedata/flores_plus, revision 5fec6c13f9e5a4db2f745d4ec0d7c9721ddc4f06)
+# Korean-English dev+devtest, prepared by ../flores_plus_corpus/prepare_flores_plus.py.
+#
+# STATUS: corpus not yet downloaded (gated; requires the account holder's own
+# Hugging Face token). This file mirrors the estimator, tokenizer, accounting
+# and scoring decisions already made for Global Voices. Its ROLE is undecided:
+#   - exploratory multi-genre replication (run with --exploratory), or
+#   - a second confirmatory corpus (then thresholds/endpoints must be set and
+#     this file frozen BEFORE its results are opened; no pilot/held-out split
+#     exists here, so thresholds may only be carried over from the Global
+#     Voices pilot, never tuned on FLORES+ itself).
+# The upstream gate asks users to ensure the benchmark was not in the
+# evaluated model's training data; Qwen3 training data is undisclosed, so
+# contamination status must be recorded as unknown.
+
+spec_version: 1
+frozen: false
+frozen_at: null
+frozen_sha256: null
+
+corpus:
+  path: /Users/damifiance/study/2-2/대글2/flores_plus_corpus/processed/flores_plus_ko_en.csv
+  format: csv
+  columns:
+    korean_text: ko_text
+    english_text: en_text
+    pair_id: pair_id
+    cluster_id: cluster_id          # hash of source document URL
+    genre: genre                    # wikinews | wikijunior | wikivoyage (upstream `domain`)
+    direction: translation_direction  # "en->ko" per the dataset card
+  normalization: NFC
+
+estimator:
+  model_id: Qwen/Qwen3-1.7B-Base
+  revision: ea980cb0a6c2ae4b936e82123acc929f1cec04c1
+  local_path: /Users/damifiance/study/2-2/대글2/pipeline/models/Qwen3-1.7B-Base-ea980cb
+  dtype: bfloat16
+  context_length: 32768
+  context_overlap: 16384
+
+tokenizers:
+  baseline:
+    id: tiktoken:o200k_base
+    revision: 0.14.0
+  korean_fit:
+    id: EleutherAI/polyglot-ko-1.3b
+    revision: 557e162cf6e944fdbae05bab2e45d066a125eacb
+
+token_accounting: content_only
+chat_template_config: null
+
+scoring_policy:
+  bos: prepend_bos
+  eos: none
+
+thresholds:                  # ROLE DECIDED 2026-09-10: exploratory multi-genre replication only; never freeze
+  c_T: null
+  L_B: null
+  U_B: null
+  c_eta: null
+  c_C: null
+
+endpoints:
+  primary: null
+  confirmatory: []
+  exploratory: [FLORES_replication]
+
+exclusions:
+  drop_ko_equals_en: true
+  drop_ko_no_hangul: true
+  drop_control_chars: false
+  min_chars_ko: null
+  min_chars_en: null
+  char_ratio_ko_over_en: null
+
+exploratory:
+  length_variable: n_chars_en
+  n_length_strata: 3
+  n_permutations: 10000
+  n_bootstrap_replicates_strata: 10000
+
+bootstrap:
+  n_replicates: 10000
+  seed: 20260910
+  alpha_two_sided: 0.05
+  alpha_equivalence: 0.05

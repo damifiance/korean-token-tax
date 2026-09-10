@@ -1,0 +1,90 @@
+{
+  "manifest_version": 1,
+  "generated_on": "2026-09-10",
+  "normalization_policy": "The corpus pipeline applies Unicode NFC before every tokenizer.",
+  "selected_baseline": {
+    "id": "tiktoken:o200k_base",
+    "revision": "0.14.0",
+    "implementation_license": "MIT",
+    "asset_url": "https://openaipublic.blob.core.windows.net/encodings/o200k_base.tiktoken",
+    "local_asset": "tiktoken-cache/fb374d419588a4632f3f557e76b4b70aebbca790",
+    "asset_bytes": 3613922,
+    "asset_sha256": "446a9538cb6c348e3516120d7c08b09f57c36495e2acfffe59a5bf8b0cfb1a2d",
+    "mergeable_tokens": 199998,
+    "defined_special_tokens": {
+      "<|endoftext|>": 199999,
+      "<|endofprompt|>": 200018
+    },
+    "n_vocab_property": 200019,
+    "normalizer": null,
+    "unknown_token": null,
+    "automatic_special_tokens_added": 0,
+    "content_policy": "The klen adapter uses encode_ordinary, so literal special-token spellings are counted as ordinary message text."
+  },
+  "selected_korean_fit": {
+    "id": "EleutherAI/polyglot-ko-1.3b",
+    "revision": "557e162cf6e944fdbae05bab2e45d066a125eacb",
+    "license": "Apache-2.0",
+    "model_card": "https://huggingface.co/EleutherAI/polyglot-ko-1.3b",
+    "local_snapshot": "hf/EleutherAI--polyglot-ko-1.3b@557e162cf6e944fdbae05bab2e45d066a125eacb",
+    "files_sha256": {
+      "README.md": "74a292bcd22dd3c0ddff71a2c9ae811b2f53bf587bb60ee878f960d1259dd651",
+      "config.json": "930b03b76ab10b1eb2b368a4447c7f67e4ee223aa4018bcd391e021dbbfc566c",
+      "special_tokens_map.json": "3cd48132e2803e81d3a11115a1e2aa823749398a7ecd10253b9e7d7e0212439a",
+      "tokenizer.json": "60e8bd123994badd563a603bce1a319dd7f5dc4798a476c2d88c671766db2f24",
+      "tokenizer_config.json": "b3e1f7844fe29b73f6ae3d050a7e20f5f0e160b90457f381a9318da9ceb0819f"
+    },
+    "tokenizer_type": "byte-level BPE",
+    "model_vocabulary": 30000,
+    "total_tokenizer_length": 30003,
+    "normalizer": null,
+    "unknown_token": null,
+    "bos_token": null,
+    "eos_token": "<|endoftext|>",
+    "eos_token_id": 2,
+    "automatic_special_tokens_added": 0,
+    "registered_special_tokens": [
+      "<|endoftext|>",
+      "<|sep|>",
+      "<|acc|>",
+      "<|tel|>",
+      "<|rrn|>"
+    ],
+    "training_documentation": "The model card reports a Korean-only 863 GB training corpus and a 30,003-token training vocabulary."
+  },
+  "other_cached_openai_encodings": {
+    "r50k_base": {
+      "asset_sha256": "306cd27f03c1a714eca7108e03d66b7dc042abe8c258b44c199a7ed9838dd930",
+      "mergeable_tokens": 50256,
+      "n_vocab_property": 50257
+    },
+    "cl100k_base": {
+      "asset_sha256": "223921b76ee99bde995b7ff738513eef100fb51d18c93597a113bcffe865b2a7",
+      "mergeable_tokens": 100256,
+      "n_vocab_property": 100277
+    }
+  },
+  "pilot_diagnostic": {
+    "status": "pilot-only; these 69 clusters are excluded from confirmatory analysis",
+    "dataset": "data/processed/globalvoices_v2018q4_en_ko_pilot.csv",
+    "dataset_sha256": "818bb775b23e44164eb24821ff50641c6c273371c9a423d6ce96e0bdf9fd46fc",
+    "rows": 1732,
+    "clusters": 69,
+    "accounting": "content_only",
+    "cluster_bootstrap_replicates": 10000,
+    "cluster_bootstrap_seed": 20260910,
+    "totals": {
+      "r50k_base": {"korean": 188290, "english": 42255, "R_T": 4.456040705241983},
+      "cl100k_base": {"korean": 91901, "english": 42202, "R_T": 2.1776456092128336},
+      "o200k_base": {"korean": 57086, "english": 41726, "R_T": 1.3681158030963907},
+      "polyglot_ko": {"korean": 50590, "english": 97027, "R_T": 0.5214012594432478}
+    },
+    "polyglot_absolute_korean_ratio_C_K": {
+      "versus_r50k_base": {"point": 0.268681289500239, "ci_95": [0.2618342050548461, 0.27632863515816786]},
+      "versus_cl100k_base": {"point": 0.5504836726477405, "ci_95": [0.537781405563543, 0.5648179959082438]},
+      "versus_o200k_base": {"point": 0.8862067757418631, "ci_95": [0.869988240628909, 0.9059485474847848]}
+    },
+    "diagnostic_conclusion": "Against o200k, Polyglot lowers pooled Korean token count by 11.4 percent in the duplicate-safe pilot, but raises pooled English count by 132.5 percent. Therefore G overstates the absolute Korean reduction and remains exploratory."
+  },
+  "interpretation_guard": "The baseline and Korean-fit tokenizers differ in vocabulary size, pre-tokenization, special-token handling, and training data. Their comparison establishes tokenizer dependence, not a corpus-language causal effect by itself."
+}

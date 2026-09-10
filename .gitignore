@@ -1,0 +1,23 @@
+# local/session
+.claude/
+.DS_Store
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# reference papers and course PDFs (third-party copyright)
+*.pdf
+
+# pipeline environment and large / non-code artifacts
+pipeline/.venv/
+pipeline/models/
+pipeline/artifacts/tokenizers/hf/
+pipeline/artifacts/tokenizers/tiktoken-cache/
+pipeline/data/raw/
+pipeline/data/processed/
+pipeline/out/
+
+# FLORES+ is gated: never publish source text or aligned derivatives
+flores_plus_corpus/raw/
+flores_plus_corpus/processed/
+flores_plus_corpus/manifest.json

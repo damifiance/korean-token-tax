@@ -1,0 +1,72 @@
+spec_version: 1
+frozen: true
+frozen_at: '2026-09-10T07:14:03.415226+00:00'
+frozen_sha256: 850fa9be54de70b83761569b8daf157b40c035a307d815c3de76a4ae7311c3ff
+corpus:
+  path: /Users/damifiance/study/2-2/대글2/pipeline/data/processed/globalvoices_v2018q4_en_ko_confirmatory.csv
+  format: csv
+  columns:
+    korean_text: ko_text
+    english_text: en_text
+    pair_id: pair_id
+    cluster_id: cluster_id
+    genre: genre
+    direction: translation_direction
+  normalization: NFC
+estimator:
+  model_id: Qwen/Qwen3-1.7B-Base
+  revision: ea980cb0a6c2ae4b936e82123acc929f1cec04c1
+  local_path: /Users/damifiance/study/2-2/대글2/pipeline/models/Qwen3-1.7B-Base-ea980cb
+  dtype: bfloat16
+  context_length: 32768
+  context_overlap: 16384
+tokenizers:
+  baseline:
+    id: tiktoken:o200k_base
+    revision: 0.14.0
+  korean_fit:
+    id: EleutherAI/polyglot-ko-1.3b
+    revision: 557e162cf6e944fdbae05bab2e45d066a125eacb
+token_accounting: content_only
+chat_template_config: null
+scoring_policy:
+  bos: prepend_bos
+  eos: none
+thresholds:
+  c_T: 1.2
+  L_B: 0.8333
+  U_B: 1.2
+  c_eta: 0.95
+  c_C: 0.9
+endpoints:
+  primary: R_eta
+  confirmatory:
+  - R_eta
+  - R_T
+  - C_K
+  decision_rule: all_confirmatory_pass
+  exploratory:
+  - R_B_equivalence
+  - one_minus_R_eta
+  - G
+  - R_T_koreanfit
+  - length_strata
+  - permutation_tests
+  - FLORES_replication
+exclusions:
+  drop_ko_equals_en: true
+  drop_ko_no_hangul: true
+  drop_control_chars: false
+  min_chars_ko: null
+  min_chars_en: null
+  char_ratio_ko_over_en: null
+exploratory:
+  length_variable: n_chars_en
+  n_length_strata: 3
+  n_permutations: 10000
+  n_bootstrap_replicates_strata: 10000
+bootstrap:
+  n_replicates: 10000
+  seed: 20260910
+  alpha_two_sided: 0.05
+  alpha_equivalence: 0.05

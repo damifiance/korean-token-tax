@@ -1,0 +1,75 @@
+# Blank reusable template. Copy this file for a different study; the populated
+# Global Voices specification is measurement_spec.yaml.
+
+spec_version: 1
+frozen: false
+frozen_at: null
+frozen_sha256: null
+
+corpus:
+  path: null
+  format: null
+  columns:
+    korean_text: null
+    english_text: null
+    pair_id: null
+    cluster_id: null
+    genre: null
+    direction: null
+  normalization: NFC
+
+estimator:
+  model_id: null
+  revision: null
+  local_path: null
+  dtype: float32
+  context_length: null
+  context_overlap: null
+
+tokenizers:
+  baseline:
+    id: null
+    revision: null
+  korean_fit:
+    id: null
+    revision: null
+
+token_accounting: null
+chat_template_config: null
+
+scoring_policy:
+  bos: null
+  eos: null
+
+thresholds:
+  c_T: null
+  L_B: null
+  U_B: null
+  c_eta: null
+  c_C: null
+
+endpoints:
+  primary: null
+  confirmatory: []
+  exploratory: []
+
+exclusions:                  # researcher decision; null/false = keep. Applied identically to
+                             # pilot and held-out data at analysis time; part of the frozen content.
+  drop_ko_equals_en: null    # true: drop rows whose Korean and English text are identical (untranslated)
+  drop_ko_no_hangul: null    # true: drop rows whose Korean side contains no Hangul
+  drop_control_chars: null   # true: drop rows with disallowed control/format characters
+  min_chars_ko: null         # integer: drop rows with fewer Korean characters
+  min_chars_en: null         # integer: drop rows with fewer English characters
+  char_ratio_ko_over_en: null  # [lo, hi]: drop rows whose n_chars_ko/n_chars_en is outside
+
+exploratory:                 # descriptive analyses only; never feed confirmatory decisions
+  length_variable: n_chars_en    # column used for length strata
+  n_length_strata: 3
+  n_permutations: 10000
+  n_bootstrap_replicates_strata: 10000
+
+bootstrap:
+  n_replicates: 10000
+  seed: 20260910
+  alpha_two_sided: 0.05
+  alpha_equivalence: 0.05
