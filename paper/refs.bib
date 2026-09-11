@@ -1,21 +1,25 @@
 @article{shannon1948,
   author  = {Shannon, Claude E.},
   title   = {A Mathematical Theory of Communication},
-  journal = {Bell System Technical Journal},
+  journal = {The Bell System Technical Journal},
   volume  = {27},
-  number  = {3--4},
-  pages   = {379--423, 623--656},
-  year    = {1948}
+  number  = {3},
+  pages   = {379--423},
+  year    = {1948},
+  doi     = {10.1002/j.1538-7305.1948.tb01338.x},
+  url     = {https://doi.org/10.1002/j.1538-7305.1948.tb01338.x}
 }
 
 @article{shannon1951,
   author  = {Shannon, Claude E.},
   title   = {Prediction and Entropy of Printed {E}nglish},
-  journal = {Bell System Technical Journal},
+  journal = {The Bell System Technical Journal},
   volume  = {30},
   number  = {1},
   pages   = {50--64},
-  year    = {1951}
+  year    = {1951},
+  doi     = {10.1002/j.1538-7305.1951.tb01366.x},
+  url     = {https://doi.org/10.1002/j.1538-7305.1951.tb01366.x}
 }
 
 @book{mackay2003,
@@ -28,10 +32,26 @@
 @inproceedings{tiedemann2012opus,
   author    = {Tiedemann, J{\"o}rg},
   title     = {Parallel Data, Tools and Interfaces in {OPUS}},
-  booktitle = {Proceedings of the Eighth International Conference on Language Resources and Evaluation (LREC 2012)},
+  booktitle = {Proceedings of the Eighth International Conference on Language Resources and Evaluation ({LREC}'12)},
   pages     = {2214--2218},
+  month     = may,
   year      = {2012},
-  note      = {Global Voices v2018q4 en--ko package, \url{https://opus.nlpl.eu/GlobalVoices.php}}
+  address   = {Istanbul, Turkey},
+  publisher = {European Language Resources Association},
+  url       = {https://aclanthology.org/L12-1246/},
+  note      = {Global Voices v2018q4 en--ko package: \url{https://opus.nlpl.eu/datasets/GlobalVoices}}
+}
+
+@inproceedings{prokopidis2016globalvoices,
+  author    = {Prokopidis, Prokopis and Papavassiliou, Vassilis and Piperidis, Stelios},
+  title     = {Parallel Global Voices: A Collection of Multilingual Corpora with Citizen Media Stories},
+  booktitle = {Proceedings of the Tenth International Conference on Language Resources and Evaluation ({LREC}'16)},
+  pages     = {900--905},
+  month     = may,
+  year      = {2016},
+  address   = {Portoro{\v{z}}, Slovenia},
+  publisher = {European Language Resources Association},
+  url       = {https://aclanthology.org/L16-1144/}
 }
 
 @misc{qwen3,
@@ -39,14 +59,24 @@
   title        = {Qwen3 Technical Report},
   year         = {2025},
   howpublished = {arXiv:2505.09388},
-  note         = {Model \texttt{Qwen/Qwen3-1.7B-Base}, revision \texttt{ea980cb0a6c2ae4b936e82123acc929f1cec04c1}}
+  doi          = {10.48550/arXiv.2505.09388},
+  url          = {https://arxiv.org/abs/2505.09388}
+}
+
+@misc{qwen3model,
+  author       = {{Qwen Team}},
+  title        = {{Qwen3-1.7B-Base} model artifact},
+  year         = {2025},
+  howpublished = {\url{https://huggingface.co/Qwen/Qwen3-1.7B-Base/tree/ea980cb0a6c2ae4b936e82123acc929f1cec04c1}},
+  note         = {Pinned revision \texttt{ea980cb0a6c2ae4b936e82123acc929f1cec04c1}}
 }
 
 @misc{tiktoken,
   author       = {{OpenAI}},
   title        = {tiktoken: a fast {BPE} tokeniser for use with {OpenAI}'s models},
-  year         = {2024},
-  howpublished = {\url{https://github.com/openai/tiktoken}},
+  year         = {2026},
+  month        = aug,
+  howpublished = {\url{https://pypi.org/project/tiktoken/0.14.0/}},
   note         = {Version 0.14.0; encoding \texttt{o200k\_base}}
 }
 
@@ -55,7 +85,16 @@
   title        = {A Technical Report for {Polyglot-Ko}: Open-Source Large-Scale {K}orean Language Models},
   year         = {2023},
   howpublished = {arXiv:2306.02254},
-  note         = {Tokenizer of \texttt{EleutherAI/polyglot-ko-1.3b}, revision \texttt{557e162cf6e944fdbae05bab2e45d066a125eacb}}
+  doi          = {10.48550/arXiv.2306.02254},
+  url          = {https://arxiv.org/abs/2306.02254}
+}
+
+@misc{polyglotkoartifact,
+  author       = {{EleutherAI}},
+  title        = {{Polyglot-Ko-1.3B} tokenizer artifact},
+  year         = {2023},
+  howpublished = {\url{https://huggingface.co/EleutherAI/polyglot-ko-1.3b/tree/557e162cf6e944fdbae05bab2e45d066a125eacb}},
+  note         = {Pinned revision \texttt{557e162cf6e944fdbae05bab2e45d066a125eacb}}
 }
 
 @article{schuirmann1987,
@@ -65,13 +104,62 @@
   volume  = {15},
   number  = {6},
   pages   = {657--680},
-  year    = {1987}
+  year    = {1987},
+  doi     = {10.1007/BF01068419},
+  url     = {https://doi.org/10.1007/BF01068419}
 }
 
 @misc{floresplus,
   author       = {{Open Language Data Initiative}},
   title        = {{FLORES+}: Multilingual Evaluation Benchmark},
-  year         = {2024},
+  year         = {2026},
   howpublished = {\url{https://huggingface.co/datasets/openlanguagedata/flores_plus}},
-  note         = {Version 4.6, revision \texttt{5fec6c13}; CC BY-SA 4.0}
+  note         = {Version 4.6, revision \texttt{5fec6c13f9e5a4db2f745d4ec0d7c9721ddc4f06}; CC BY-SA 4.0}
+}
+
+@inproceedings{ahia2023,
+  author    = {Ahia, Orevaoghene and Kumar, Sachin and Gonen, Hila and Kasai, Jungo and Mortensen, David and Smith, Noah A. and Tsvetkov, Yulia},
+  title     = {Do All Languages Cost the Same? Tokenization in the Era of Commercial Language Models},
+  booktitle = {Proceedings of the 2023 Conference on Empirical Methods in Natural Language Processing},
+  pages     = {9904--9923},
+  year      = {2023},
+  publisher = {Association for Computational Linguistics},
+  doi       = {10.18653/v1/2023.emnlp-main.614},
+  url       = {https://aclanthology.org/2023.emnlp-main.614/}
+}
+
+@inproceedings{petrov2023,
+  author    = {Petrov, Aleksandar and La Malfa, Emanuele and Torr, Philip H. S. and Bibi, Adel},
+  title     = {Language Model Tokenizers Introduce Unfairness Between Languages},
+  booktitle = {Advances in Neural Information Processing Systems 36},
+  year      = {2023},
+  doi       = {10.52202/075280-1608},
+  url       = {https://proceedings.neurips.cc/paper_files/paper/2023/hash/74bb24dca8334adce292883b4b651eda-Abstract-Conference.html}
+}
+
+@inproceedings{zouhar2023,
+  author    = {Zouhar, Vil{\'e}m and Meister, Clara and Gastaldi, Juan Luis and Du, Li and Sachan, Mrinmaya and Cotterell, Ryan},
+  title     = {Tokenization and the Noiseless Channel},
+  booktitle = {Proceedings of the 61st Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers)},
+  pages     = {5184--5207},
+  year      = {2023},
+  publisher = {Association for Computational Linguistics},
+  doi       = {10.18653/v1/2023.acl-long.284},
+  url       = {https://aclanthology.org/2023.acl-long.284/}
+}
+
+@misc{erdogan2026,
+  author       = {Erdogan, Mete and Gorle, Abhiram and Chandak, Shubham and Pilanci, Mert and Weissman, Tsachy},
+  title        = {An Information-Theoretic Perspective on {LLM} Tokenizers},
+  year         = {2026},
+  howpublished = {arXiv:2601.09039},
+  url          = {https://arxiv.org/abs/2601.09039}
+}
+
+@misc{mandarapu2026,
+  author       = {Mandarapu, Madhulatha and Kunkunuru, Sandeep},
+  title        = {Removable and Irreducible: A Token-Cost Ledger for the Multilingual Tokenization Tax},
+  year         = {2026},
+  howpublished = {arXiv:2609.00378},
+  url          = {https://arxiv.org/abs/2609.00378}
 }

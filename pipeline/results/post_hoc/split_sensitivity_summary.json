@@ -1,0 +1,88 @@
+{
+  "note": "POST HOC split-sensitivity; not a confirmatory analysis. Frozen thresholds held fixed.",
+  "corpus": {
+    "pairs": 8718,
+    "articles": 347,
+    "exclusions": {
+      "drop_ko_equals_en": true,
+      "drop_ko_no_hangul": true,
+      "drop_control_chars": false,
+      "min_chars_ko": null,
+      "min_chars_en": null,
+      "char_ratio_ko_over_en": null
+    }
+  },
+  "whole_corpus": {
+    "point": {
+      "R_T": 1.3864971785636069,
+      "R_B": 1.308713616692852,
+      "R_eta": 0.9438992281604657,
+      "C_K": 0.8671223853309674
+    },
+    "R_eta_ci95": [
+      0.9365241215558279,
+      0.9513543360779965
+    ],
+    "R_eta_upper95": 0.9502101616714105
+  },
+  "resplits": {
+    "n_splits": 1000,
+    "n_boot": 2000,
+    "held_out_articles": 278,
+    "seed": 20260911,
+    "quantiles": {
+      "held_R_eta": {
+        "0.05": 0.940658,
+        "0.25": 0.942508,
+        "0.5": 0.943947,
+        "0.75": 0.945188,
+        "0.95": 0.946889
+      },
+      "R_eta_upper95": {
+        "0.05": 0.947585,
+        "0.25": 0.949617,
+        "0.5": 0.951029,
+        "0.75": 0.952182,
+        "0.95": 0.954036
+      },
+      "pilot_R_eta": {
+        "0.05": 0.931961,
+        "0.25": 0.938594,
+        "0.5": 0.943713,
+        "0.75": 0.949461,
+        "0.95": 0.956755
+      },
+      "held_R_T": {
+        "0.05": 1.379707,
+        "0.25": 1.383356,
+        "0.5": 1.386408,
+        "0.75": 1.389349,
+        "0.95": 1.393243
+      },
+      "held_C_K": {
+        "0.05": 0.8648,
+        "0.25": 0.866193,
+        "0.5": 0.867194,
+        "0.75": 0.868156,
+        "0.95": 0.869515
+      }
+    },
+    "pass_rate": {
+      "R_eta": 0.319,
+      "R_T": 1.0,
+      "C_K": 1.0,
+      "all": 0.319
+    },
+    "point_below_c_eta_rate": 1.0,
+    "c_eta_for_95pct_pass": 0.9540364141702423
+  },
+  "per_article": {
+    "median_R_eta": 0.9481531319947689,
+    "share_below_1": 0.792507204610951,
+    "share_below_c_eta": 0.5129682997118156,
+    "leave_one_out_R_eta_range": [
+      0.9428216931865463,
+      0.9451149336225795
+    ]
+  }
+}
