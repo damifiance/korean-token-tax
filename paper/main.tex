@@ -54,7 +54,7 @@ Department of Electrical and Computer Engineering, Seoul National University\\
 \texttt{jh0420park@gmail.com}}
 % TODO: confirm the romanisation of 박재형 before submission.
 
-\date{Revised draft of 11 September 2026}
+\date{Revised draft of 15 September 2026}
 
 \begin{document}
 \maketitle
@@ -522,12 +522,32 @@ pre-freeze simulation gave the rule only a 78\% chance of passing even if
 the pilot value were exactly right, and the held-out estimate moved up by an
 unremarkable 1.1 bootstrap standard deviations. None of this justifies
 revising the threshold after observing the result; that constraint is the
-purpose of freezing the rule.
+purpose of freezing the rule. The point estimate, $\Reta=0.9448$, implies a
+5.52\% shortfall, but its one-sided 95\% upper bound, 0.9519, does not meet
+the requirement of being below 0.95. The failure concerns this prespecified
+minimum effect and its uncertainty; it does not invalidate the ratio itself.
 
-Substantively, $\Reta$ is close to one because $\RB$ is large, not because
-$\RT$ is small. Under the current tokenizer the Korean token surplus is
-39\%, and the model spends 31\% more bits on the Korean side. Three
-contributors, which the present design cannot separate, push $\RB$ upward:
+Substantively, the numerator and denominator of $\eta_L=B_L/T_L$ both
+increase when the English totals are replaced by the Korean totals. Here,
+$B_L=\sum_i B_{i,L}$ and $T_L=\sum_i T_{i,L}$. The Korean texts receive
+31.2\% more Qwen-relative code bits and require 38.9\% more billing tokens.
+The relative efficiency is therefore
+\begin{equation}
+  \frac{\eta_\ko}{\eta_\en}
+  =\frac{B_\ko/B_\en}{T_\ko/T_\en}
+  =\frac{1.3121}{1.3888}\approx0.9448.
+  \label{eq:joint-increase}
+\end{equation}
+It is the relative sizes of these increases, rather than the fact that both
+increase, that determine the result. The larger bit numerator partly offsets
+the larger token denominator, leaving a much smaller efficiency shortfall
+than the token surplus alone might suggest. This is an arithmetic account of
+the estimated effect size, not a causal explanation of why Korean received
+more bits. It also does not establish that information was lost during
+tokenization.
+
+Three measurement considerations, which the present design cannot separate,
+could affect $\RB$; their contributions and net direction are unmeasured:
 
 \begin{enumerate}[nosep]
 \item \emph{Estimator representation.} Bits are summed over the estimator's
@@ -551,6 +571,49 @@ guarantee equal information.
 The model-mismatch and translation terms can alter $\RB$, but their
 magnitudes and net direction are not measured here. Consequently, the 5.5\%
 shortfall is not a lower bound on a causal encoding effect.
+
+\subsection{Could linguistic structure explain the larger numerator?}
+\label{sec:structural-hypothesis}
+
+One post hoc hypothesis is that features of Korean morphology and syntax
+contribute to the larger $B_\ko$, alongside the greater token count. For
+example, the variety of particle and verb-ending combinations could affect
+the uncertainty of the written forms or the fixed estimator's ability to
+predict them. If such effects increase model-assigned code length while the
+billing tokenizer also produces more tokens, the two changes would partly
+offset in $B/T$, as in Eq.~\ref{eq:joint-increase}. This is a candidate
+explanation of the observed pattern, not a conclusion that Korean is
+globally more complex or inherently contains more information than English.
+
+Grammatical complexity does not automatically imply higher Shannon entropy.
+Entropy describes uncertainty under a specified source distribution and
+unit; regular grammatical constraints can make a form predictable even when
+its internal structure is elaborate. A higher entropy per character would
+also not, by itself, establish a higher total entropy per message. Research
+on cross-language modelling difficulty illustrates the empirical uncertainty:
+\citet{mielke2019} did not reproduce an earlier association between
+morphological complexity and modelling difficulty under their broader
+experimental conditions. That result motivates caution here; it does not
+settle the present Korean--English comparison.
+
+The current measurement cannot distinguish greater uncertainty in the text
+source from greater prediction error by Qwen. In the expected-code-length
+decomposition $H(P,Q_M)=H(P)+D_{\mathrm{KL}}(P\|Q_M)$, either the source
+entropy or the mismatch term can contribute to a larger value. Thus, the
+structural explanation remains compatible with the observations, but the
+observed $\RB=1.3121$ does not verify it or identify either contribution.
+Assessing it would require additional evidence about linguistic structure
+and estimator performance; this interpretation was developed after the
+held-out results and does not alter the frozen confirmatory decisions.
+
+This also limits the meaning of ``value'' when it is operationalised as
+$\eta=B/T$. The quantity measures model-relative code bits per billed token,
+not semantic usefulness, response quality, or intrinsic information obtained
+by a user. Holding the text and billing tokenizer fixed, poorer model
+prediction can increase $B$ and hence the apparent ``value'' without adding
+any content. Accordingly, the similar increases in $B$ and $T$ help explain
+the modest efficiency gap, while leaving both its linguistic cause and its
+interpretation as user value unresolved.
 
 \subsection{What the evidence supports}
 
@@ -614,6 +677,7 @@ revisions are recorded in the run provenance. The historical-tokenizer
 comparison was computed post hoc and is not part of the archived
 confirmatory outputs.
 
+\Needspace{9\baselineskip}
 \bibliographystyle{plainnat}
 \bibliography{refs}
 
