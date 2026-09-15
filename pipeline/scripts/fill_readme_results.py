@@ -40,14 +40,14 @@ def main() -> int:
     lines.append("| Quantity | Point | 95 % CI |")
     lines.append("|---|---|---|")
     lines.append(est_row("R_T", "`R_T` token ratio KR/EN (o200k)", e))
-    lines.append(est_row("R_B", "`R_B` bit ratio KR/EN (Qwen3-1.7B)", e))
+    lines.append(est_row("R_B", "`R_B` Qwen-relative code-length ratio KR/EN", e))
     lines.append(est_row("R_eta", "`R_η` = `R_B` / `R_T`", e))
-    lines.append(est_row("one_minus_R_eta", "`1 − R_η` encoding shortfall", e))
+    lines.append(est_row("one_minus_R_eta", "`1 − R_η` model-relative efficiency shortfall", e))
     lines.append(est_row("C_K", "`C_K` Korean tokens, polyglot-ko / o200k", e))
     lines.append(est_row("R_T_koreanfit", "`R_T` under polyglot-ko (exploratory)", e))
-    lines.append(est_row("G", "`G` gap contraction (exploratory)", e))
+    lines.append(est_row("G", "`G` change in language token ratio (exploratory)", e))
     lines.append("")
-    lines.append("### Pre-registered decisions\n")
+    lines.append("### Prospectively frozen decisions\n")
     lines.append("| Comparison | Rule | Bound observed | Result |")
     lines.append("|---|---|---|---|")
     for k in od["confirmatory_comparisons"]:
@@ -60,34 +60,36 @@ def main() -> int:
         parts = []
         for k in failed:
             d = dec[k]; bound = d.get("lower_bound", d.get("upper_bound"))
-            parts.append(f"`{k}` (bound {bound:.4f} vs threshold in rule \"{d['rule']}\"; point estimate {e[k]['point']:.4f})")
-        lines.append("The pre-registered rule was not met because " + "; ".join(parts) + ". "
+            parts.append(f"`{k}` did not satisfy \"{d['rule']}\" (bound {bound:.4f}; point estimate {e[k]['point']:.4f})")
+        lines.append("The overall rule was not met because " + "; ".join(parts) + ". "
                      "The thresholds were frozen before this data was scored and are not revised here; "
                      "the point estimates and intervals above are reported as observed.\n")
     rb = exd["R_B_equivalence"]
     lines.append(f"Exploratory bit-ratio equivalence: 90 % CI for `R_B` = "
                  f"[{rb['ci'][0]:.4f}, {rb['ci'][1]:.4f}] against [0.8333, 1.20] → "
                  f"{'inside' if rb['pass'] else 'not inside'} the interval. "
-                 f"Korean text costs more bits under this model as well as more tokens; "
-                 f"the pre-registered primary question is whether bits rise *as fast as* tokens, "
-                 f"which is what `R_η` measures.\n")
+                 "Qwen assigned Korean greater total code length. The frozen primary criterion "
+                 "required the one-sided 95% upper bound for `R_η` to be below 0.95; "
+                 "approximate equality of total code lengths was assessed only exploratorily.\n")
 
     lines.append("### Pilot vs held-out\n")
     lines.append("| Quantity | Pilot (69 articles) | Held-out (278 articles) |")
     lines.append("|---|---|---|")
     for k, lab in (("R_T", "`R_T`"), ("R_B", "`R_B`"), ("R_eta", "`R_η`"), ("C_K", "`C_K`")):
         lines.append(f"| {lab} | {p[k]['point']:.4f} | {e[k]['point']:.4f} |")
-    lines.append("")
+    lines.append("\nPilot values here use the frozen exclusions, not the full raw pilot sample.\n")
 
     ls = ex["length_strata"]
     lines.append(f"### By message length (exploratory; terciles of `{ls['length_variable']}`)\n")
-    lines.append("| Stratum | Range (chars) | n | `R_T` | `R_B` | `R_η` [95 % CI] | `C_K` |")
+    lines.append("| Stratum | Observed length range (chars) | Pairs | `R_T` | `R_B` | `R_η` [95 % CI] | `C_K` |")
     lines.append("|---|---|---|---|---|---|---|")
     for lvl, v in ls["levels"].items():
         s = v["estimands"]; r = ls["ranges"][lvl]
         lines.append(f"| {lvl} | {r[0]:.0f}–{r[1]:.0f} | {v['n_pairs']} | {s['R_T']['point']:.3f} | {s['R_B']['point']:.3f} | "
                      f"{s['R_eta']['point']:.3f} [{s['R_eta']['ci_low']:.3f}, {s['R_eta']['ci_high']:.3f}] | {s['C_K']['point']:.3f} |")
-    lines.append("")
+    lines.append("\nGroups use length ranks, with ties broken by row order; the displayed "
+                 "minimum–maximum ranges can overlap. These are descriptive subgroup estimates, "
+                 "not a direct test of differences between groups.\n")
 
     pt = ex["permutation_tests"]
     lines.append(f"### Paired cluster permutation tests (exploratory; {pt['n_permutations']:,} sign-flips of whole articles)\n")
@@ -95,7 +97,11 @@ def main() -> int:
     lines.append("|---|---|---|")
     for k in ("R_T", "R_B", "R_eta", "C_K"):
         lines.append(f"| `{k}` | {pt[k]['log_ratio_obs']:+.4f} | {pt[k]['p_value']:.5f} |")
-    lines.append(f"\nMinimum attainable p is 1/(1+{pt['n_permutations']:,}); the three language ratios are one dependent finding.\n")
+    lines.append(f"\nMinimum attainable p is 1/(1+{pt['n_permutations']:,}). "
+                 "The three language ratios are algebraically dependent: `R_η` is determined by `R_B` and `R_T`. "
+                 "These exploratory tests assume language-label exchangeability "
+                 "(tokenizer-label exchangeability for `C_K`); they do not establish "
+                 "the prespecified effect magnitudes.\n")
 
     pp = ex["per_pair_ratio_distribution"]
     lines.append("### Per-message ratio distribution (descriptive only; not the estimand)\n")
@@ -105,8 +111,9 @@ def main() -> int:
         d = pp[k]
         lines.append(f"| `{k}` | {d['mean']:.3f} | {d['median']:.3f} | {d['geometric_mean']:.3f} | {d['p05']:.3f} | {d['p95']:.3f} |")
     lines.append("")
-    lines.append("Full outputs, including 10,000 bootstrap replicates, provenance (package versions, "
-                 "tokenizer file hashes, dataset hash, device) and the pilot precision simulation, are in `pipeline/results/`.")
+    lines.append("Archived analysis outputs, with source text omitted, include 10,000 bootstrap replicates, "
+                 "provenance (package versions, tokenizer file hashes, dataset hash, device) and the pilot "
+                 "precision simulation: see [pipeline/results/](pipeline/results/).")
 
     block = "\n".join(lines)
     text = README.read_text()

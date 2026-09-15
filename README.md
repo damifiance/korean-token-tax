@@ -1,102 +1,113 @@
 # Why does Korean pay more tokens? (한국어의 "인코딩 세금" 검증)
 
-Measuring whether Korean's higher LLM token cost comes from *more information*
-or from *worse encoding*, using Shannon's code-length view of tokenization on
-an aligned Korean–English corpus, with the decision rules fixed before the
-final data was opened.
+An information-theoretic study of Korean–English tokenization using parallel
+texts, a fixed language model, and decision rules frozen before held-out
+scoring. It measures **model-relative code bits per billing token**, not
+intrinsic language entropy or the usefulness of an LLM's answer.
 
----
+The held-out Korean texts used **38.9% more tokens** and received **31.2%
+more Qwen-relative code bits**. Their bits-per-token ratio was **5.5% lower**,
+but the prespecified minimum-effect criterion was not met. The result is
+retained; the study does not establish why Korean received more model bits.
 
-## 1. The puzzle
+[Read the paper (PDF)](paper/main.pdf) · [LaTeX source](paper/main.tex) ·
+[Frozen specification](pipeline/spec/measurement_spec.yaml) ·
+[Archived results](pipeline/results/confirmatory/analysis_summary.json)
 
-Send the same message to a language model in Korean and in English. The
-Korean version is billed for noticeably more tokens. Everyone who has used an
-LLM API from Korea has noticed this; the usual reaction is "the tokenizer is
-bad at Korean". But that is only one of two possible explanations, and they
-predict different things:
+## 1. Research question
 
-| | **A. Information hypothesis** | **B. Encoding hypothesis** |
+When aligned Korean and English messages receive different token counts,
+how much of the difference is accompanied by a difference in model-assigned
+code length, and how sensitive is it to the billing tokenizer?
+
+The original motivation contrasted an **information explanation** with an
+**encoding explanation**. The expected encoding-only pattern was a large
+token ratio but approximately equal total bits. However, these are not
+mutually exclusive causal mechanisms, and the measurements do not cleanly
+separate them. Equivalent meaning does not imply equal Shannon entropy;
+poor model prediction can also increase measured bits.
+
+The experiment therefore tests a specified efficiency contrast and tokenizer
+sensitivity. It does **not** identify an intrinsic information difference
+between the two languages or isolate tokenizer training-language mix as the
+cause of the token gap.
+
+## 2. What is measured?
+
+### Two separate measurements of the same text
+
+For each text `s`, the billing tokenizer counts content tokens, `T_b(s)`.
+Separately, Qwen uses **its own tokenizer** and next-token probabilities to
+compute a model-relative sequential code length:
+
+```text
+z = τ_M(s)
+B_M(s) = −Σ_j log₂ Q_M(z_j | c, z_<j)
+```
+
+Here `M` is the fixed Qwen estimator, `z_j` is a Qwen token, and `c` is the
+document-boundary context. Every content token is scored; EOS is not. The
+billing tokenizer's token IDs are used only for counting and are never fed
+into Qwen.
+
+`B_M` is an ideal code length in bits. Arithmetic coding can approach this
+sequence-level length with finite coding overhead and suitable framing;
+this study computes log probabilities, not actual compressed files.
+The value is independent of the **billing tokenizer**, but still depends on
+Qwen, its own tokenizer, and the scoring policy.
+
+### Corpus totals and ratios
+
+For language `L` (Korean or English), sum over the same included pairs:
+
+```text
+B_L = Σ_i B_M(s_i,L)
+T_L = Σ_i T_b(s_i,L)
+η_L = B_L / T_L
+```
+
+Thus `M` identifies the estimator, while `L` identifies the language being
+aggregated. The study's operational efficiency measure `η_L` has units of
+**Qwen-relative code bits per billing token**.
+
+| Quantity | Definition | Interpretation |
 |---|---|---|
-| Why more tokens? | The Korean text really carries more information (it says more, or is harder to predict). | The tokenizer, trained mostly on English, chops Korean into small pieces. |
-| Token ratio KR/EN | high | high |
-| Bit ratio KR/EN | high, similar to the token ratio | close to 1 |
-| Korean-trained tokenizer | small change | Korean token count drops |
+| `R_T` | `T_KR / T_EN` | Baseline token ratio |
+| `R_B` | `B_KR / B_EN` | Qwen-relative code-length ratio |
+| `R_η` | `η_KR / η_EN = R_B / R_T` | Relative bits-per-token efficiency |
+| `1 − R_η` | Relative efficiency shortfall | Not lost information or a measured fraction of wasted spending |
+| `C_K` | `T_KR,polyglot / T_KR,o200k` | Korean token-count sensitivity on identical strings |
+| `G` (exploratory) | `R_T,polyglot / R_T,o200k` | Change in the language token ratio; can also fall if English token counts rise |
 
-The two hypotheses agree about token counts, so counting tokens cannot
-separate them. They disagree about *information*, so we need a way to measure
-information that does not depend on the tokenizer under test.
+These are **ratios of pooled totals**, not means of per-message ratios.
+`R_T`, `R_B`, and `R_η` are algebraically dependent, not independent findings.
 
-## 2. The intuition: tokenizers are codes, and a model is a codebook
+### Why model bits are not intrinsic entropy
 
-Shannon's insight is that "how much information a message contains" and "how
-many symbols it takes to write down" are two different things, connected by a
-*code*. A good code spends few symbols on predictable content and more on
-surprising content. A bad code wastes symbols.
+For a source distribution `P` and model distribution `Q`, expected
+cross-entropy satisfies `H(P,Q) = H(P) + D_KL(P‖Q)`. Measured code length
+therefore combines source uncertainty with model mismatch. The Korean and
+English mismatch terms are unknown; this study does not establish that the
+Korean term is larger or quantify its effect on the ratio. Translation
+choices, genre, and possible training-data contamination add further limits.
 
-A tokenizer is exactly such a code: it turns text into a sequence of symbols
-(tokens). And a language model is, in effect, a codebook that tells us how
-surprising each piece of text is. Arithmetic coding makes this concrete: a
-model that assigns probability `P` to the next token can encode that token in
-`-log2 P` bits. Summed over a message, this gives its **model-relative code
-length**
+## 3. Prospective specification freeze
 
-```
-B_M(s) = - Σ_j log2 P_M(z_j | z_<j),      z = τ_M(s)
-```
+The corpus was split into a **pilot**, used to check implementation and
+estimate precision, and a **held-out set** for the final comparisons.
+Thresholds were chosen after examining the pilot but before scoring the
+held-out set. They are study-specific substantive margins, not universal
+information-theoretic constants.
 
-which is measured in bits and does *not* care how the billing tokenizer
-splits the text. It answers "how much does this model have to be told to
-reproduce this message?"
+The specification was frozen on **10 September 2026 at 07:14 UTC**. Its
+SHA-256 records the agreed configuration; confirmatory analysis rejects an
+unfrozen spec, a content-hash mismatch, or pilot-tagged input. This is an
+internal prospective freeze, **not an externally registered preregistration**.
+A hash is not an independent timestamp or proof that data remained unseen.
+The original spec and results are preserved in the repository.
 
-With bits in hand, the billing tokenizer's efficiency is simply
-
-```
-η(s) = B_M(s) / T_b(s)        bits carried per billed token
-```
-
-Now the two hypotheses separate cleanly. Corpus-wide, define
-
-```
-R_T = Σ T_KR / Σ T_EN        token ratio
-R_B = Σ B_KR / Σ B_EN        bit ratio
-R_η = R_B / R_T              efficiency ratio  (bits/token in Korean ÷ bits/token in English)
-```
-
-* If Korean genuinely carries more information, bits rise with tokens:
-  `R_B ≈ R_T` and `R_η ≈ 1`.
-* If Korean is merely encoded badly, tokens rise but bits do not:
-  `R_T ≫ 1`, `R_B ≈ 1`, and `R_η < 1`. The shortfall `1 − R_η` is the
-  "encoding tax": how much less information each Korean token carries than
-  an English token would, under this model. It is a relative shortfall, not
-  a literal count of empty tokens.
-
-A second, independent check: re-encode the *same* Korean sentences with a
-tokenizer trained on Korean. The text and its information are unchanged; only
-the code changes. If the Korean token count falls (`C_K < 1`), the original
-cost was at least partly a property of the code, not the message.
-
-### What the bits do and do not mean
-
-`B_M` is *model-relative* surprisal, not intrinsic entropy. Writing the
-model's distribution as `Q` and the true one as `P`,
-`H(P,Q) = H(P) + D_KL(P‖Q)`: the measured bits include the model's own
-prediction error. If the estimator model knows Korean less well than English,
-Korean bits are inflated, which biases *against* the encoding hypothesis
-(it makes `R_B` larger). Parallel meaning also does not guarantee equal
-information: a translation may add or drop content. The pipeline records
-these guards in every output file so they travel with the numbers.
-
-## 3. Pre-registration: deciding what "well above one" means before looking
-
-Ratios like "≫ 1" and "≈ 1" are meaningless until thresholds are fixed, and
-thresholds chosen after seeing the data prove nothing. The study therefore
-splits the corpus into a **pilot** (used for variance estimates and for
-choosing thresholds) and a **held-out** set that was scored only after the
-specification was frozen. Freezing writes a SHA-256 of the spec content into
-the file; the analysis refuses to run on an unfrozen or edited spec, and
-refuses pilot-tagged inputs in confirmatory mode.
-
-Frozen decisions (`pipeline/spec/measurement_spec.yaml`, hash `850fa9be…`):
+Frozen decisions ([measurement_spec.yaml](pipeline/spec/measurement_spec.yaml),
+hash prefix `850fa9be…`):
 
 | Decision | Value | Rule applied to the held-out bootstrap |
 |---|---|---|
@@ -105,27 +116,47 @@ Frozen decisions (`pipeline/spec/measurement_spec.yaml`, hash `850fa9be…`):
 | Tokenizer control | `C_K` | one-sided 95 % upper bound < `c_C = 0.90` |
 | Overall | all three must pass | `all_confirmatory_pass` |
 | Bit-ratio equivalence (exploratory) | `R_B` | 90 % CI inside `[0.8333, 1.20]` |
-| Exclusions | drop untranslated rows (Korean text identical to English) and rows with no Hangul on the Korean side | applied identically to pilot and held-out |
+| Exclusions | drop identical Korean/English strings and rows with no Hangul on the Korean side | applied identically to pilot and held-out |
 
-Everything else (per-genre and per-length breakdowns, permutation tests,
-per-pair distributions, the gap-contraction statistic `G`, and the FLORES+
-replication) is exploratory and is labelled as such in the output.
+Length breakdowns, permutation tests, per-pair distributions, and `G` are
+exploratory. Historical-tokenizer and split-sensitivity analyses were added
+post hoc. FLORES+ is planned as exploratory replication only; its corpus has
+not been downloaded or scored. Revising thresholds now would not create a
+new confirmatory test on the already-inspected held-out data.
 
 ## 4. Setup
 
 | Component | Choice | Pinned identity |
 |---|---|---|
-| Corpus | OPUS Global Voices v2018q4 en–ko, article-aligned news | 347 articles, 9,017 pairs; deterministic article-level split (seed 20260910): pilot 69 articles / 1,732 pairs, held-out 278 / 7,285 |
-| Estimator model `M` | Qwen3-1.7B-Base | revision `ea980cb0…`, bf16 weights, float32 log-softmax, MPS |
+| Corpus | OPUS Global Voices v2018q4 en–ko | 9,017 aligned pairs in 347 nonempty articles; one news/citizen-media genre |
+| Estimator model `M` | Qwen/Qwen3-1.7B-Base | revision `ea980cb0…`, bf16 weights, float32 log-softmax; original scoring on MPS |
 | Baseline billing tokenizer `b` | OpenAI `o200k_base` (tiktoken 0.14.0) | vocabulary asset SHA-256 verified |
-| Korean-trained comparison tokenizer | EleutherAI polyglot-ko-1.3b | revision `557e162c…`, 30k vocabulary, Korean-only training corpus |
+| Korean-trained comparison tokenizer | EleutherAI/polyglot-ko-1.3b | revision `557e162c…`; tokenizer only, not the Polyglot language model |
 | Token accounting | content only (no chat wrapper) | |
 | Scoring policy | prepend the model's document boundary token, score every content token, no EOS | |
 | Statistics | ratio-of-sums estimands; paired cluster bootstrap (whole articles resampled, both languages together), 10,000 replicates | seed 20260910 |
 
-Every pooled ratio is a ratio of corpus sums, never a mean of per-message
-ratios; the identity `R_η = R_B / R_T` therefore holds exactly in every
-bootstrap replicate, and the pipeline asserts it.
+The three corpus counts describe different levels: each row is a bilingual
+pair, pairs belong to articles, and the articles share one broad genre.
+The deterministic split (seed `20260910`) assigned 69 articles / 1,732 raw
+pairs to the pilot and 278 articles / 7,285 raw pairs to the held-out set.
+Articles connected by exact bilingual duplicates were assigned together;
+neither an article nor an exact bilingual duplicate crossed the split.
+
+Text processing was limited to Unicode NFC normalization and trimming
+surrounding whitespace, without rewriting. NFC standardizes canonically
+equivalent Unicode sequences; it is not transliteration. Translation
+direction and Qwen training-data contamination remain unknown.
+
+Whole articles are resampled with both languages together because sentences
+within an article are dependent. The identity `R_η = R_B / R_T` is preserved
+in every bootstrap replicate. Full model revisions and scoring settings are
+recorded in the frozen spec and archived provenance.
+
+Content-only counts are a **billing proxy**, not reconstructed API invoices:
+chat wrappers, output tokens, caching, and differing price schedules are not
+measured. The tokenizer comparison does not imply that an existing model
+can use the other tokenizer without adaptation.
 
 ## 5. Results
 
@@ -137,14 +168,14 @@ Held-out set after exclusions: **7,046 pairs in 278 articles** (239 rows dropped
 | Quantity | Point | 95 % CI |
 |---|---|---|
 | `R_T` token ratio KR/EN (o200k) | 1.3888 | [1.3714, 1.4058] |
-| `R_B` bit ratio KR/EN (Qwen3-1.7B) | 1.3121 | [1.2959, 1.3278] |
+| `R_B` Qwen-relative code-length ratio KR/EN | 1.3121 | [1.2959, 1.3278] |
 | `R_η` = `R_B` / `R_T` | 0.9448 | [0.9363, 0.9532] |
-| `1 − R_η` encoding shortfall | 0.0552 | [0.0468, 0.0637] |
+| `1 − R_η` model-relative efficiency shortfall | 0.0552 | [0.0468, 0.0637] |
 | `C_K` Korean tokens, polyglot-ko / o200k | 0.8665 | [0.8601, 0.8729] |
 | `R_T` under polyglot-ko (exploratory) | 0.5095 | [0.5025, 0.5163] |
-| `G` gap contraction (exploratory) | 0.3668 | [0.3629, 0.3707] |
+| `G` change in language token ratio (exploratory) | 0.3668 | [0.3629, 0.3707] |
 
-### Pre-registered decisions
+### Prospectively frozen decisions
 
 | Comparison | Rule | Bound observed | Result |
 |---|---|---|---|
@@ -154,9 +185,9 @@ Held-out set after exclusions: **7,046 pairs in 278 articles** (239 rows dropped
 
 **Overall (all_confirmatory_pass): FAIL.**
 
-The pre-registered rule was not met because `R_eta` (bound 0.9519 vs threshold in rule "one-sided 95% upper bound < c_eta=0.95"; point estimate 0.9448). The thresholds were frozen before this data was scored and are not revised here; the point estimates and intervals above are reported as observed.
+The overall rule was not met because `R_eta` did not satisfy "one-sided 95% upper bound < c_eta=0.95" (bound 0.9519; point estimate 0.9448). The thresholds were frozen before this data was scored and are not revised here; the point estimates and intervals above are reported as observed.
 
-Exploratory bit-ratio equivalence: 90 % CI for `R_B` = [1.2984, 1.3252] against [0.8333, 1.20] → not inside the interval. Korean text costs more bits under this model as well as more tokens; the pre-registered primary question is whether bits rise *as fast as* tokens, which is what `R_η` measures.
+Exploratory bit-ratio equivalence: 90 % CI for `R_B` = [1.2984, 1.3252] against [0.8333, 1.20] → not inside the interval. Qwen assigned Korean greater total code length. The frozen primary criterion required the one-sided 95% upper bound for `R_η` to be below 0.95; approximate equality of total code lengths was assessed only exploratorily.
 
 ### Pilot vs held-out
 
@@ -167,13 +198,17 @@ Exploratory bit-ratio equivalence: 90 % CI for `R_B` = [1.2984, 1.3252] against 
 | `R_η` | 0.9400 | 0.9448 |
 | `C_K` | 0.8697 | 0.8665 |
 
+Pilot values here use the frozen exclusions, not the full raw pilot sample.
+
 ### By message length (exploratory; terciles of `n_chars_en`)
 
-| Stratum | Range (chars) | n | `R_T` | `R_B` | `R_η` [95 % CI] | `C_K` |
+| Stratum | Observed length range (chars) | Pairs | `R_T` | `R_B` | `R_η` [95 % CI] | `C_K` |
 |---|---|---|---|---|---|---|
 | Q1 | 3–74 | 2349 | 1.564 | 1.419 | 0.907 [0.894, 0.921] | 0.882 |
 | Q2 | 74–137 | 2348 | 1.415 | 1.318 | 0.931 [0.919, 0.944] | 0.868 |
 | Q3 | 137–587 | 2349 | 1.329 | 1.271 | 0.956 [0.946, 0.966] | 0.861 |
+
+Groups use length ranks, with ties broken by row order; the displayed minimum–maximum ranges can overlap. These are descriptive subgroup estimates, not a direct test of differences between groups.
 
 ### Paired cluster permutation tests (exploratory; 10,000 sign-flips of whole articles)
 
@@ -184,7 +219,7 @@ Exploratory bit-ratio equivalence: 90 % CI for `R_B` = [1.2984, 1.3252] against 
 | `R_eta` | -0.0567 | 0.00010 |
 | `C_K` | -0.1433 | 0.00010 |
 
-Minimum attainable p is 1/(1+10,000); the three language ratios are one dependent finding.
+Minimum attainable p is 1/(1+10,000). The three language ratios are algebraically dependent: `R_η` is determined by `R_B` and `R_T`. These exploratory tests assume language-label exchangeability (tokenizer-label exchangeability for `C_K`); they do not establish the prespecified effect magnitudes.
 
 ### Per-message ratio distribution (descriptive only; not the estimand)
 
@@ -194,62 +229,164 @@ Minimum attainable p is 1/(1+10,000); the three language ratios are one dependen
 | `R_B` | 1.396 | 1.357 | 1.331 | 0.766 | 2.091 |
 | `R_eta` | 0.973 | 0.944 | 0.949 | 0.666 | 1.369 |
 
-Full outputs, including 10,000 bootstrap replicates, provenance (package versions, tokenizer file hashes, dataset hash, device) and the pilot precision simulation, are in `pipeline/results/`.
+Archived analysis outputs, with source text omitted, include 10,000 bootstrap replicates, provenance (package versions, tokenizer file hashes, dataset hash, device) and the pilot precision simulation: see [pipeline/results/](pipeline/results/).
 <!-- RESULTS:END -->
 
-## 6. Reading the numbers honestly
+## 6. Interpretation and unresolved explanations
 
-* `R_T`, `R_B`, `R_η` are functionally dependent; they are one finding seen
-  from three angles, not three findings.
-* `1 − R_η` is a shortfall relative to an English-efficiency counterfactual,
-  not a literal count of "empty" tokens.
-* `C_K < 1` shows that a different code encodes the same Korean in fewer
-  symbols. Attributing that to the training-language mix alone would require
-  holding the algorithm, vocabulary size, normalisation and pre-tokenisation
-  fixed, which two off-the-shelf tokenizers do not.
-* Global Voices predates the estimator model; training-data contamination
-  is unknown, not excluded.
-* Bits are Qwen3-1.7B-relative. A different estimator gives different bits;
-  the exploratory replications are there to see whether the *ratios* move.
+### Why the efficiency gap was smaller than expected
 
-## 7. Reproducing
+The numerator and denominator both increased:
 
-```zsh
-cd pipeline
-python3 -m venv .venv && .venv/bin/pip install -r requirements.lock.txt
-.venv/bin/python -m pytest                      # 66 tests, hand-verifiable NLL cases included
-
-python3 scripts/prepare_globalvoices.py         # builds the pilot / held-out split from the OPUS archive
-.venv/bin/python -m klen.run_pipeline spec/pilot_spec.yaml out/pilot --allow-unfrozen --pilot 1732 --device mps
-.venv/bin/python -m klen.analyze spec/pilot_spec.yaml out/pilot/per_pair_pilot.csv out/pilot --exploratory
-
-.venv/bin/python -m klen.freeze_spec spec/measurement_spec.yaml
-.venv/bin/python -m klen.run_pipeline spec/measurement_spec.yaml out/confirmatory --device mps
-.venv/bin/python -m klen.analyze spec/measurement_spec.yaml out/confirmatory/per_pair_full.csv out/confirmatory
+```text
+R_η = (B_KR / B_EN) / (T_KR / T_EN)
+    = 1.3121 / 1.3888
+    ≈ 0.9448
 ```
 
-The estimator snapshot and tokenizer files are fetched at the pinned
-revisions; `MODEL_MANIFEST.json` and `TOKENIZER_MANIFEST.json` carry file
-hashes that are re-verified before every run. Operational details are in
-`pipeline/README_TECHNICAL.md`.
+Korean's 31.2% greater model code length partly offsets its 38.9% greater
+token count in `B/T`, leaving a 5.52% relative efficiency shortfall. This is
+an arithmetic explanation of the point estimate, not a causal explanation
+of why either component increased.
+
+The formal failure is a separate issue: the one-sided 95% upper bound for
+`R_η` was **0.9519**, not below **0.95**. The data indicate a lower ratio,
+but do not establish a reduction exceeding the prespecified 5% margin at
+that confidence level. The failed criterion does not make the ratio invalid
+or prove that the two languages are equally efficient.
+
+### Could Korean linguistic structure explain the larger numerator?
+
+This is a **post-hoc hypothesis**, not a result. Korean morphology, particles,
+and ending combinations could affect written-text uncertainty or the fixed
+model's ability to predict it. But grammatical complexity does not by itself
+imply higher Shannon entropy: entropy requires a source distribution and a
+specified unit, and predictable structure can reduce conditional uncertainty.
+Per-character entropy is also not the same quantity as total message code
+length.
+
+The present measurements cannot distinguish greater source uncertainty from
+greater Qwen mismatch, translation effects, or genre effects. Consequently,
+the observation that both `B` and `T` increased does **not** establish that
+Korean intrinsically contains more information. The paper discusses this
+possibility with reference to [Mielke et al. (2019)](https://aclanthology.org/P19-1491/).
+
+### What does “value” mean here?
+
+`B/T` is an operational coding-efficiency measure, not a validated measure
+of semantic value, answer quality, or benefit to a user. A less accurate
+estimator can assign more bits to unchanged text and thereby raise `B/T`
+without adding content. Likewise, the 5.5% shortfall is **not 5.5% information
+loss**, a count of empty tokens, or an established fraction of wasted money.
+“Encoding tax” is a motivating label, not a demonstrated monetary loss.
+
+### What the tokenizer comparisons establish
+
+Polyglot-Ko used about **13.3% fewer Korean tokens** on the same strings
+(`C_K = 0.8665`). This establishes tokenizer sensitivity. Because the two
+tokenizers also differ in vocabulary size and other design choices, it does
+not isolate English-heavy training as the cause or rule out source-language
+differences.
+
+The paper also reports a **post-hoc** comparison holding the held-out strings
+and Qwen bits fixed while changing only the billing encoding:
+
+| Billing encoding | `R_T` | `R_η` | Model-relative efficiency shortfall |
+|---|---|---|---|
+| `r50k_base` | 4.591 | 0.286 | 71.4% |
+| `cl100k_base` | 2.238 | 0.586 | 41.4% |
+| `o200k_base` | 1.389 | 0.945 | 5.5% |
+
+These are tokenizer comparisons, not experiments with three generations of
+LLM estimators or reconstructions of historical API bills. The post-hoc
+[split-sensitivity analysis](pipeline/results/post_hoc/split_sensitivity_summary.json)
+also remains exploratory; it does not replace the original failed decision.
+
+Overall, the study supports a token-count gap and tokenizer sensitivity on
+this corpus. It supports neither the simple “equal bits, encoding only”
+pattern nor the opposite conclusion that Korean has higher intrinsic entropy.
+No second-corpus or alternative-estimator replication is reported here.
+
+## 7. Recomputing the archived statistics
+
+The repository includes text-free per-pair measurements, so the published
+statistics can be recomputed without downloading corpus text or model
+weights. From a clone of the repository:
+
+```sh
+cd pipeline
+python3 -m venv .venv
+.venv/bin/python -m pip install -r requirements.lock.txt
+.venv/bin/python -m klen.analyze \
+  spec/measurement_spec.yaml \
+  results/confirmatory/per_pair_full_no_text.csv \
+  out/reproduction
+```
+
+This uses the original frozen rules and writes to a separate directory.
+It reanalyzes **archived measurements**; it does not independently repeat
+Qwen scoring or provide new confirmatory evidence. The original environment
+used Python 3.13.1; package versions are recorded in the lockfile and provenance.
+
+Optional implementation checks:
+
+```sh
+.venv/bin/python -m pytest
+```
+
+The suite contains **66 automated checks**, including unit and integration
+tests. Three tests may download a tiny GPT-2 checkpoint; one MPS-specific
+test is skipped if MPS is unavailable. Test count is not a pass count, and
+software checks do not validate the scientific hypothesis.
+
+### Repeating model scoring on a new machine
+
+Full scoring requires additional preparation; it is not turnkey from the
+frozen spec, which preserves absolute paths from the original machine:
+
+1. Obtain the [pinned OPUS archive](https://object.pouta.csc.fi/OPUS-GlobalVoices/v2018q4/moses/en-ko.txt.zip)
+   as `pipeline/data/raw/OPUS-GlobalVoices-v2018q4-en-ko.txt.zip`. Then run
+   `scripts/prepare_globalvoices.py` from `pipeline/`. The script verifies
+   the archive hash and prepares the split; it does **not** download the
+   archive or overwrite existing prepared files.
+2. Prepare the pinned estimator/tokenizer assets. Model weights and the local
+   `MODEL_MANIFEST.json` are not included in Git. For a separate reproduction
+   spec, `estimator.local_path: null` allows loading the pinned Hub revision
+   instead of the original local snapshot.
+3. Make a **separate reproduction specification**, documenting path or loader
+   changes and its new hash. Preserve the original spec, freeze timestamp,
+   and archived results. A new freeze cannot recreate the original blind
+   evaluation.
+4. Score to a new output directory with `klen.run_pipeline`, then analyze
+   those measurements with `klen.analyze`. Both MPS and CPU are supported;
+   CPU may be slower, and numerical results need not be byte-identical across
+   hardware. Only confirmatory analysis verifies the frozen content hash;
+   the scoring command checks the frozen flag.
+
+The [technical README](pipeline/README_TECHNICAL.md) contains implementation
+details but also legacy status notes; its references to unfilled thresholds
+and 63 tests describe an earlier project state. The frozen specification
+and archived provenance are the record of the completed run.
 
 ## Repository layout
 
 ```
 pipeline/klen/          measurement package: data validation, NLL scoring, token counting,
                         pooled-ratio bootstrap, spec freezing, provenance, analysis CLI
-pipeline/tests/         unit tests incl. exact-bit fake models and bootstrap identity checks
+paper/                  paper PDF, LaTeX source, and bibliography
+pipeline/tests/         automated checks incl. exact-bit fake models and bootstrap identities
 pipeline/spec/          frozen held-out spec, pilot spec, FLORES+ spec, blank template
-pipeline/scripts/       Global Voices download/alignment/split
+pipeline/scripts/       corpus preparation/split, result export, README result rendering
 pipeline/results/       analysis outputs (summaries, bootstrap replicates, provenance,
                         per-pair measurements with text columns removed)
-flores_plus_corpus/     downloader/aligner for the gated FLORES+ multi-genre replication
+flores_plus_corpus/     downloader/aligner for the planned gated FLORES+ replication
 ```
 
-Corpus text is not redistributed here. Global Voices is CC BY 3.0 via OPUS
-and can be rebuilt with the script; FLORES+ is gated and must be obtained
-personally. The Qwen3 weights (Apache-2.0) and polyglot-ko tokenizer
-(Apache-2.0) are downloaded at the pinned revisions.
+Corpus text and model weights are not redistributed here. The OPUS archive
+retains the original sources' licenses; see the [data guide](pipeline/data/README.md)
+for licensing and attribution details. Qwen3 and Polyglot-Ko assets use
+Apache-2.0. FLORES+ access must be obtained personally under its access
+conditions; see its [preparation guide](flores_plus_corpus/README.md).
 
 ## References
 
@@ -257,3 +394,8 @@ personally. The Qwen3 weights (Apache-2.0) and polyglot-ko tokenizer
   Technical Journal*, 1948.
 * C. E. Shannon, "Prediction and Entropy of Printed English," *Bell System
   Technical Journal*, 1951.
+* S. J. Mielke et al., [“What Kind of Language Is Hard to Language-Model?”](https://aclanthology.org/P19-1491/),
+  *ACL*, 2019.
+
+Further references and limitations are in the [paper](paper/main.pdf) and
+its [bibliography](paper/refs.bib).
